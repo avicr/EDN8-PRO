@@ -56,6 +56,7 @@
 #define PAL_G1          0x10   //gray bgr, gray txt
 #define PAL_G2          0x11   //gray bgr, white txt
 #define PAL_G3          0x12   //gray bgr, yellow txt
+#define PAL_GG          0x13   //gray bgr, green txt
 
 //io regs
 #define REG_FIFO_DATA   *((u8 *)0x40F0) //fifo data register
@@ -262,6 +263,7 @@ u8 bi_cmd_dir_load(u8 *path, u8 sorted);
 void bi_cmd_dir_get_size(u16 *size);
 void bi_cmd_dir_get_recs(u16 start_idx, u16 amount, u16 max_name_len);
 u8 bi_cmd_file_open(u8 *path, u8 mode);
+u8 bi_cmd_dir_make(u8 *path); // Creates a directory
 u8 bi_cmd_file_close();
 u8 bi_cmd_file_read_mem(u32 addr, u32 len);
 u8 bi_cmd_file_read(void *dst, u32 len);

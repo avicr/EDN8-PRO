@@ -31,17 +31,17 @@ typedef struct {
 } FmTime;
 
 
-u8 app_fmanager();
+u8 app_fmanager(u8* Path, u8 bSaveFolderMode);
 FmState *fm;
 FmPage *fm_page;
 
-u8 fmanager(u8 *path) {
+u8 fmanager(u8 *path, u8 bSaveFolderMode) {
 
     u8 resp;
     u8 bank = REG_APP_BANK;
 
     REG_APP_BANK = APP_FMG;
-    resp = app_fmanager(path);
+    resp = app_fmanager(path, bSaveFolderMode);
     REG_APP_BANK = bank;
     return resp;
 }
@@ -74,11 +74,10 @@ u8 fmLoadDir();
 
 FmTime t;
 
-u8 app_fmanager() {
+u8 app_fmanager(u8* Path, u8 bSaveFolderMode) {
 
     u8 resp;
     u8 joy;
-
 
     if (!fm->skip_init) {
 
@@ -88,10 +87,21 @@ u8 app_fmanager() {
 
     fm->load_dir = 1;
 
+    // Copy the starting path if provided
+    if (Path != 0)
+    {
+        str_copy(Path, fm->path);
+    }
+
+    // Debug yo - show the path we are browsing too
+    // gSetXY(0, 0);
+    // gConsPrint(fm->path);
+    // gRepaint();
+    // sysJoyWait();
 
     while (1) {
 
-        if (fm->is_file) {
+        if (!bSaveFolderMode && fm->is_file) {
             fmPathRemove();
             fm->is_file = 0;
         }
@@ -151,32 +161,61 @@ u8 app_fmanager() {
             fm->selector -= MAX_ROWS;
         }
 
-        if (joy == JOY_A) {
-            if (fm->dir_size == 0)continue;
-            resp = fmGetPath(0);
-            if (resp)return resp;
-            resp = fmOpen();
-            if (resp)return resp;
-            continue;
+        if (joy == JOY_A) 
+        {
+            if (bSaveFolderMode)
+            {
+                str_copy(fm_page->recs[fm->selector % MAX_ROWS].rec_name, ses_cfg->save_folder_name);
+                return 0;
+            }
+            else
+            {
+                if (fm->dir_size == 0)continue;
+                resp = fmGetPath(0);
+                if (resp)return resp;
+                resp = fmOpen();
+                if (resp)return resp;
+                continue;
+            }
         }
 
-        if (joy == JOY_B) {
-            resp = fmDirClose();
-            if (resp)return resp;
-            continue;
+        if (joy == JOY_B) 
+        {
+            if (bSaveFolderMode)
+            {
+                //str_copy(fm->path, "");
+                return 1; // return a cancel code
+            }
+            else
+            {
+                resp = fmDirClose();
+                if (resp)return resp;
+                continue;
+            }
         }
 
-        if (joy == JOY_STA) {
-
-            return edStartGame(0);
-
+        if (joy == JOY_STA) 
+        {
+            if (bSaveFolderMode)
+            {                
+                str_copy(fm_page->recs[fm->selector % MAX_ROWS].rec_name, ses_cfg->save_folder_name);
+                return 0;
+            }
+            else
+            {
+                return edStartGame(0);
+            }
         }
 
-        if (joy == JOY_SEL) {
-            u8 sort = registery->options.sort_files;
-            resp = mainMenu();
-            if (resp)return resp;
-            if (sort != registery->options.sort_files)fm->load_dir = 1;
+        if (joy == JOY_SEL) 
+        {            
+            if (!bSaveFolderMode)
+            {
+                u8 sort = registery->options.sort_files;
+                resp = mainMenu();
+                if (resp)return resp;
+                if (sort != registery->options.sort_files)fm->load_dir = 1;
+            }
         }
     }
 
@@ -229,7 +268,7 @@ void fmPrintHeader() {
     tot_page = fm->dir_size / MAX_ROWS;
     if (fm->dir_size % MAX_ROWS != 0)tot_page++;
     if (tot_page == 0)tot_page = 1;
-    gAppendString("page: ");
+    gAppendString("Page: ");
     gAppendNum(fm_page->cur_page / MAX_ROWS + 1);
     gAppendString(" of ");
     gAppendNum(tot_page);

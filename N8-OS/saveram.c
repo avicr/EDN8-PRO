@@ -5,7 +5,6 @@
 
 u32 savGetUsedMemory(u32 addr, u32 max_size);
 u32 srmCalcFdsCrc(u32 addr, u32 len);
-void srmGetPathSS(u8 *path, u8 bank);
 
 u8 srmBackup() {
 
@@ -45,7 +44,7 @@ u8 srmRestore() {
     return resp;
 }
 
-u8 srmBackupSS(u8 bank) {
+u8 srmBackupSS(u8 bank, u8 bIsSafe) {
 
     u8 resp;
     u8 *path;
@@ -53,7 +52,7 @@ u8 srmBackupSS(u8 bank) {
     if (registery->cur_game.path[0] == 0)return 0;
 
     path = malloc(MAX_PATH_SIZE);
-    srmGetPathSS(path, bank);
+    srmGetPathSS(path, bank, bIsSafe);
     resp = bi_cmd_file_open(path, FA_OPEN_ALWAYS | FA_WRITE);
     free(MAX_PATH_SIZE);
     if (resp)return resp;
@@ -74,13 +73,13 @@ u8 srmBackupSS(u8 bank) {
     return 0;
 }
 
-u8 srmRestoreSS(u8 bank) {
+u8 srmRestoreSS(u8 bank, u8 bIsSafe) {
 
     u8 resp;
     u8 *path;
 
     path = malloc(MAX_PATH_SIZE);
-    srmGetPathSS(path, bank);
+    srmGetPathSS(path, bank, bIsSafe);
     //resp = srmFileToMem(path, ADDR_SST, SIZE_SST);
     resp = bi_cmd_file_open(path, FA_READ);
     free(MAX_PATH_SIZE);
@@ -103,22 +102,29 @@ u8 srmRestoreSS(u8 bank) {
     return 0;
 }
 
-u8 srmGetInfoSS(FileInfo *inf, u8 bank) {
+u8 srmGetInfoSS(FileInfo *inf, u8 bank, u8 bIsSafe) {
 
     u8 *path;
     u8 resp;
 
     path = malloc(MAX_PATH_SIZE);
-    srmGetPathSS(path, bank);
+    srmGetPathSS(path, bank, bIsSafe);
     resp = bi_cmd_file_info(path, inf);
     free(MAX_PATH_SIZE);
 
     return resp;
 }
 
-void srmGetPathSS(u8 *path, u8 bank) {
+void srmGetPathSS(u8 *path, u8 bank, u8 bIsSafe)
+{
 
-    str_make_sync_name(registery->cur_game.path, path, PATH_SNAP_DIR, "sav", bank);
+    ppuON();
+    str_make_save_state_name(registery->cur_game.path, path, PATH_SNAP_DIR, "sav", bank, bIsSafe);
+    
+    // // Debug yo
+    //gSetXY(0, 23);    
+    //gConsPrint(path);
+    // sysJoyWait();
 }
 
 u8 srmFileToMem(u8 *path, u32 addr, u32 max_size) {

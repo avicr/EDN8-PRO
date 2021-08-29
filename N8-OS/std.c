@@ -82,6 +82,21 @@ u16 str_lenght(u8 *str) {
     return len;
 }
 
+u8 str_is_empty(u8 *str)
+{
+    u8 *ptr = str;
+    while (*ptr)
+    {
+        if (*ptr != ' ')
+        {
+            return 0;
+        }
+        ptr++;
+    }
+
+    return 1;
+}
+
 u8* str_get_ext_ptr(u8 *str) {
 
     u8 *ptr = 0;
@@ -189,6 +204,43 @@ void str_make_sync_name(u8 *src, u8 *dst, u8 *dst_path, u8 *dst_ext, u8 idx) {
     str_append(dst, dst_ext);
 }
 
+void str_make_save_state_name(u8 *src, u8 *dst, u8 *dst_path, u8 *dst_ext, u8 idx, u8 bIsSafe) {
+
+    dst[0] = 0;
+    dst = str_append(dst, dst_path);
+    dst = str_append(dst, "/");
+    str_append(dst, str_extract_name(src));
+    dst[str_lenght(dst) - 4] = 0;      // Remove the ".nes"
+    str_append(dst, "/");
+        
+    //str_append(dst, "/");
+    str_append(dst, ses_cfg->save_folder_name);   //append the save folder name
+    dst = str_append(dst, "/");
+
+    // str_append(GameSaveFolder, PATH_SNAP_DIR);
+    // str_append(GameSaveFolder, "/");
+    // str_append(GameSaveFolder, str_extract_name(registery->cur_game.path));
+    // GameSaveFolder[str_lenght(GameSaveFolder) - 4] = 0;      // Remove the ".nes"
+    // bi_cmd_dir_make(GameSaveFolder);
+
+    // Now create the default save folder (this is ok even if it already exists)
+    // str_append(GameSaveFolder, "/");
+    // dst = str_append(GameSaveFolder, "default");
+
+    //dst = str_extract_ext(dst);    
+    if (bIsSafe)
+    {
+        dst = str_append(dst, "Safe.");
+    }
+    else if (idx != SYNC_IDX_OFF) 
+    {
+        dst = str_append_hex8(dst, idx);
+        dst = str_append(dst, ".");
+    }
+
+    str_append(dst, dst_ext);
+}
+
 u8* str_append_date(u8 *dst, u16 date) {
 
     str_append_hex8(dst, decToBcd(date & 31));
@@ -221,23 +273,32 @@ void mem_set(void *dst, u8 val, u16 len) {
 }
 
 void mem_copy(void *src, void *dst, u16 len) {
+    u8* param_src = src;
+    u8* param_dst = dst;
 
-    while (len--)*((u8 *) dst)++ = *((u8 *) src)++;
+    while (len--)
+    *(param_dst)++ = *(param_src)++;
 }
 
 u8 mem_cmp(void *src, void *dst, u16 len) {
+    u8* param_src = src;
+    u8* param_dst = dst;
 
-    while (len--) {
-        if (*((u8 *) dst)++ != *((u8 *) src)++)return 0;
+    while (len--) 
+    {
+        if (*(param_dst++) != *(param_src++))
+        {
+            return 0;
+        }
     }
 
     return 1;
 }
 
 u8 mem_tst(void *str, u8 val, u16 len) {
-
+    u8* param_str = str;
     while (len--) {
-        if (*((u8 *) str)++ != val)return 0;
+        if (*(param_str++) != val)return 0;
     }
     return 1;
 }

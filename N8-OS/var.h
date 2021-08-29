@@ -8,7 +8,7 @@
 #ifndef VAR_H
 #define	VAR_H
 
-u8 fmanager();
+u8 fmanager(u8* Path, u8 bSaveFolderMode);
 void fmInitMemory();
 void fmForceUpdate();
 

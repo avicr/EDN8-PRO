@@ -3,7 +3,9 @@
 
 void app_guiInit();
 void app_guiDrawInfoBox(InfoBox *box);
+void app_guiDrawPaletteBox(InfoBox *box);
 void app_guiDrawListBox(ListBox *box);
+void app_guiDrawAlphaBox(AlphaBox *box);
 u8 app_guiConfirmBox(u8 *str, u8 def);
 
 void guiInit() {
@@ -22,11 +24,27 @@ void guiDrawInfoBox(InfoBox *box) {
     REG_APP_BANK = bank;
 }
 
+void guiDrawPaletteBox(InfoBox *box) {
+
+    u8 bank = REG_APP_BANK;
+    REG_APP_BANK = APP_GUI;
+    app_guiDrawPaletteBox(box);
+    REG_APP_BANK = bank;
+}
+
 void guiDrawListBox(ListBox *box) {
 
     u8 bank = REG_APP_BANK;
     REG_APP_BANK = APP_GUI;
     app_guiDrawListBox(box);
+    REG_APP_BANK = bank;
+}
+
+void guiDrawAlphaBox(AlphaBox *box) {
+
+    u8 bank = REG_APP_BANK;
+    REG_APP_BANK = APP_GUI;
+    app_guiDrawAlphaBox(box);
     REG_APP_BANK = bank;
 }
 
@@ -252,6 +270,182 @@ void app_guiDrawListBox(ListBox *box) {
 
 }
 
+void app_guiDrawAlphaBox(AlphaBox *box) 
+{
+#define GLYPHS_PER_ROW 10
+    u8 items = 36;
+    u8 max_str_len = 0;
+    u8 str_len;
+    u8 h;
+    u8 i;
+    u8 joy;
+    u8 sel_dpd = box->selector & SEL_DPD;
+    u8 x = (G_SCREEN_W - GLYPHS_PER_ROW*2 ) / 2;
+    u8 y = (G_SCREEN_H - INF_ROWS - 12) / 2 + 1; // - ((G_INF_BAR_H - 1) / 2);
+
+    gSetXY(x, y-4);
+    gConsPrint(" Enter Folder Name");
+    gSetPal(PAL_BORDER);
+    guiDrawWindow("", 19, 4);    
+    y += 2;
+    box->selector &= ~SEL_DPD;
+
+    while (1) {
+
+        gSetPal(PAL_BORDER);
+        //guiDrawWindow(box->hdr, max_str_len, h);
+
+        // Print numbers
+        for (i = 0; i < 10; i++) {
+
+            if (box->selector == i) {
+                gSetPal(PAL_G2);
+            } else {
+                gSetPal(PAL_SEL1);
+            }            
+            gSetXY(x + (i % GLYPHS_PER_ROW * 2),i / GLYPHS_PER_ROW + 2 + y);
+            gAppendChar(0x30 + i);
+            if (i % GLYPHS_PER_ROW != GLYPHS_PER_ROW-1)
+            {
+                gAppendChar(' ');            
+            }
+        }
+
+        for (i = 0; i < 26; i++) {
+
+            if (box->selector == i + 10) {
+                gSetPal(PAL_G2);
+            } else {
+                gSetPal(PAL_SEL1);
+            }            
+            gSetXY(x + (i % GLYPHS_PER_ROW * 2), i / GLYPHS_PER_ROW + 3 + y);
+            gAppendChar(0x41 + i);
+            if (i % GLYPHS_PER_ROW != GLYPHS_PER_ROW-1)
+            {
+                gAppendChar(' ');            
+            }
+        }
+
+        if (box->selector == 36)     
+        {
+            gSetPal(PAL_G2);
+        }
+        else
+        {
+            gSetPal(PAL_SEL1);
+        }
+        gAppendString("_ ");
+
+        if (box->selector == 37)     
+        {
+            gSetPal(PAL_G2);
+        }
+        else
+        {
+            gSetPal(PAL_SEL1);
+        }
+        gAppendString("- ");
+
+        if (box->selector == 38)     
+        {
+            gSetPal(PAL_G2);
+        }
+        else
+        {
+            gSetPal(PAL_SEL1);
+        }
+
+        gAppendString(". ");        
+        
+        if (box->selector == 39)     
+        {
+            gSetPal(PAL_G2);
+        }
+        else
+        {
+            gSetPal(PAL_SEL1);
+        }
+        gAppendString("!");        
+        gRepaint();
+
+        joy = sysJoyWait();
+
+        if (joy == JOY_A) {
+            box->act = ACT_OPEN;
+            return;
+        }
+
+        if (joy == JOY_B) {
+            box->act = ACT_EXIT;
+            return;
+        }
+
+        if (joy == JOY_STA) {
+            box->act = joy;
+            return;
+        }
+
+        if (joy == JOY_SEL) {
+            box->act = joy;
+            return;
+        }
+
+        if ((joy == JOY_L || joy == JOY_R) && sel_dpd) {
+            box->act = joy;
+            return;
+        }
+
+        if (joy == JOY_L) 
+        {
+            if (box->selector % GLYPHS_PER_ROW == 0) // wrap the same line
+            {
+                box->selector += GLYPHS_PER_ROW-1;
+            }
+            else 
+            {
+                box->selector = box->selector - 1;
+            }
+        }
+
+        if (joy == JOY_R) 
+        {
+            if (box->selector % GLYPHS_PER_ROW == 9) // wrap the same line
+            {
+                box->selector -= (GLYPHS_PER_ROW-1);
+            }
+            else
+            {
+                box->selector = box->selector + 1;
+            }
+        }
+
+        if (joy == JOY_U) 
+        {
+            if (box->selector / GLYPHS_PER_ROW == 0)  //wrap to bottom row
+            {
+                box->selector += GLYPHS_PER_ROW * 3;
+            }
+            else
+            {
+                box->selector -= GLYPHS_PER_ROW;
+            }            
+        }
+
+        if (joy == JOY_D) 
+        {
+            if (box->selector / GLYPHS_PER_ROW == 3)  //wrap to top row
+            {
+                box->selector -= GLYPHS_PER_ROW * 3;
+            }
+            else
+            {
+                box->selector += GLYPHS_PER_ROW;
+            }            
+        }
+    }
+
+}
+
 u8 app_guiConfirmBox(u8 *str, u8 def) {
 
     u8 selector = def;
@@ -292,6 +486,91 @@ u8 app_guiConfirmBox(u8 *str, u8 def) {
         if (joy == JOY_R && selector == 1)selector--;
         if (joy == JOY_L && selector == 0)selector++;
     }
+
+
+}
+
+void app_guiDrawPaletteBox(InfoBox *box) {
+
+    u8 i;
+    u8 y;
+    u8 x;
+    u8 str_len;
+
+
+    if (!box->skip_init) {
+
+        box->max_arg_len = 0;
+        box->max_val_len = 0;
+
+        for (i = 0; i < box->items; i++) {
+
+            if (box->val[i] == 0)continue;
+            str_len = str_lenght(box->arg[i]);
+            if (box->max_arg_len < str_len)box->max_arg_len = str_len;
+            str_len = str_lenght(box->val[i]);
+            if (box->max_val_len < str_len)box->max_val_len = str_len;
+        }
+
+        box->max_arg_len += 1;
+        box->max_val_len += 2;
+        box->skip_init = 1;
+    }
+
+    gSetPal(PAL_BORDER);
+    guiDrawWindow(box->hdr, box->max_arg_len + box->max_val_len, box->items * 2 + 1);
+    gSetPal(PAL_INFO);
+
+    x = gGetX();
+    y = gGetY();
+
+    for (i = 0; i < box->items; i++) {
+
+        if (box->selector != SEL_OFF) {
+            gSetPal(box->selector == i ? PAL_SEL1 : PAL_SEL0);
+        }
+
+        gConsPrint(box->arg[i]);
+        gConsPrint("");
+    }
+
+    gSetXY(x + box->max_arg_len, y);
+    for (i = 0; i < box->items; i++) {
+
+        if (box->selector != SEL_OFF) {
+            gSetPal(box->selector == i ? PAL_SEL1 : PAL_SEL0);
+        }
+
+        if (box->val[i] != 0) {
+            gConsPrint(": ");
+            gAppendString(box->val[i]);
+        } else {
+            gConsPrint("");
+        }
+        gConsPrint("");
+    }
+
+    gSetXY(3, 24);
+    gSetPal(PAL_B1);
+    gConsPrint("TXT 1  ");
+    gSetPal(PAL_B2);
+    gAppendString("TXT 2  ");
+    gSetPal(PAL_B3);
+    gAppendString("TXT 3  ");
+    gSetPal(PAL_BG);
+    gAppendString("TXT 4  ");
+
+    gSetXY(3, 25);
+    gSetPal(PAL_G1);
+    gConsPrint("TXT 1  ");
+    gSetPal(PAL_G2);
+    gAppendString("TXT 2  ");
+    gSetPal(PAL_G3);
+    gAppendString("TXT 3  ");
+    gSetPal(PAL_GG);
+    gAppendString("TXT 4");
+
+    gRepaint();
 
 
 }

@@ -23,6 +23,7 @@ void mmAbout();
 void mmDeviceInfo();
 void mmDeviceInfo_full();
 void volOptions();
+void PalOptions();
 void mmHotKeySetup();
 //void mmHotKeyInfo();
 void mmAppendKeyCode(u8 joy);
@@ -33,8 +34,8 @@ enum {
     MM_CHEATS,
     MM_DEV_INF,
     MM_DIAGNOSTICS,
-    MM_ABOUT,
-    MM_SIZE
+    MM_ABOUT,    
+    MM_SIZE,    
 };
 
 u8 app_mainMenu() {
@@ -48,7 +49,7 @@ u8 app_mainMenu() {
     menu_items[MM_CHEATS] = "Cheats";
     menu_items[MM_DEV_INF] = "Device Info";
     menu_items[MM_DIAGNOSTICS] = "Diagnostics";
-    menu_items[MM_ABOUT] = "About";
+    menu_items[MM_ABOUT] = "About";    
     menu_items[MM_SIZE] = 0;
 
     box.hdr = "Main Menu";
@@ -87,8 +88,7 @@ u8 app_mainMenu() {
         if (box.selector == MM_DIAGNOSTICS) {
             resp = diagnostics();
             if (resp)return resp;
-        }
-
+        }        
 
         gCleanScreen();
     }
@@ -107,6 +107,7 @@ enum {
     OP_IG_COMBO,
     OP_AUDIO_VOL,
     OP_RTC,
+    OP_PALETTE,
     OP_SIZE
 };
 
@@ -132,7 +133,7 @@ u8 mmOptions() {
     arg[OP_IG_COMBO] = "[In-Game Combo]";
     arg[OP_AUDIO_VOL] = "[Audio Balance]";
     arg[OP_RTC] = "[RTC Setup]";
-
+    arg[OP_PALETTE] = "[Palette Setup]";
 
 
     box.hdr = "Options";
@@ -155,16 +156,21 @@ u8 mmOptions() {
         val[OP_IG_COMBO] = 0;
         val[OP_AUDIO_VOL] = 0;
         val[OP_RTC] = 0;
+        val[OP_PALETTE] = 0;
 
         guiDrawInfoBox(&box);
         joy = sysJoyWait();
 
-        if (joy == JOY_U) {
+        if (joy == JOY_U) {            
             box.selector = dec_mod(box.selector, OP_SIZE);
+            gCleanScreen();            
+            
         }
 
-        if (joy == JOY_D) {
+        if (joy == JOY_D) {            
             box.selector = inc_mod(box.selector, OP_SIZE);
+            gCleanScreen();            
+            
         }
 
         if (joy == JOY_B) {
@@ -185,6 +191,10 @@ u8 mmOptions() {
             if (box.selector == OP_IG_COMBO)mmHotKeySetup(); //
             if (box.selector == OP_RTC)rtcSetup();
             if (box.selector == OP_AUDIO_VOL)volOptions();
+            if (box.selector == OP_PALETTE)
+            {
+                PalOptions();
+            }
 
             gCleanScreen();
         }
@@ -661,4 +671,248 @@ void mmDeviceInfo_full() {
 
     gRepaint();
     sysJoyWait();
+}
+
+enum {
+    PM_BG1 = 0,
+    PM_BG2,
+    PM_TEXT1,
+    PM_TEXT2,
+    PM_TEXT3,
+    PM_TEXT4,
+    PM_TINT,
+    PM_RESTORE_DEFAULT,
+    PM_SAVE,
+    PM_SIZE  
+};
+
+u8 IsBlack(u8 Color)
+{
+    // Could have done some clever bit masking here, but meh
+    if (Color == 0x0D || Color == 0x0E || Color == 0x0F || Color == 0x1D || Color == 0x1E || Color == 0x1F || Color == 0x2E || Color == 0x2F ||
+        Color == 0x3E || Color == 0x3F)
+    {
+        return 1;
+    }
+
+    return 0;
+}
+
+u8 IsLightGray(u8 Color)
+{
+    if (Color == 0x30 || Color == 0x20)
+    {
+        return 1;
+    }
+    return 0;
+}
+
+u8 IsWhite(u8 Color)
+{
+    if (Color == 0x3D || Color == 0x10)
+    {
+        return 1;
+    }
+    return 0;
+}
+
+u8 IsSameColor(u8 Color1, u8 Color2)
+{
+    if ( (Color1 == Color2) || (IsWhite(Color1) && IsWhite(Color2)) || (IsBlack(Color1) && IsBlack(Color2)) || 
+         (IsLightGray(Color1) && IsLightGray(Color2)))
+    {
+        return 1;
+    }
+    return 0;
+}
+
+// ColorIndex - the index into the custom pal in options
+u8 DecColor(u8 OriginalColor, u8 ColorIndex)
+{
+    u8 ResultColor = OriginalColor;
+    u8 i = 0;
+
+    // Bounds check
+    if (ResultColor > 0)
+    {
+        ResultColor--;
+    }
+
+    for (; i < 6; i++)
+    {
+        // Don't compare the color against itself
+        if (i == ColorIndex)
+        {
+            continue;
+        }
+
+        if (IsSameColor(ResultColor, registery->options.pal_custom[i]))
+        {
+            // Return the original color since we can't go any lower
+            if (ResultColor == 0)
+            {                
+                return registery->options.pal_custom[ColorIndex];
+            }
+            ResultColor = DecColor(ResultColor, ColorIndex);
+        }
+    }
+    return ResultColor;
+}
+
+// Could probably combine IncColor() and DecColor() to save ROM space
+// ColorIndex - the index into the custom pal in options
+u8 IncColor(u8 OriginalColor, u8 ColorIndex)
+{
+    u8 ResultColor = OriginalColor;
+    u8 i = 0;
+
+    // Bounds check
+    if (ResultColor < 0x3F)
+    {
+        ResultColor++;
+    }
+
+    for (; i < 6; i++)
+    {
+        // Don't compare the color against itself
+        if (i == ColorIndex)
+        {
+            continue;
+        }
+
+        if (IsSameColor(ResultColor, registery->options.pal_custom[i]))
+        {
+            // Return the original color since we can't go any lower
+            if (ResultColor >= 0x3F)
+            {                
+                return registery->options.pal_custom[ColorIndex];
+            }
+            ResultColor = IncColor(ResultColor, ColorIndex);
+        }
+    }
+    return ResultColor;
+}
+
+void PalOptions() {
+
+    u8 i = 0;
+    u8 joy;
+    u8 changed = 0;
+    InfoBox box;
+    u8 * arg[PM_SIZE];
+    u8 * ColorVal[PM_SIZE];
+    u8 * Buff;
+    u8 * ptr;
+    u8 OldPal[7];    
+
+    arg[PM_BG1]   = "BG 1        ";
+    arg[PM_BG2]   = "BG 2        ";
+    arg[PM_TEXT1] = "Text 1      ";
+    arg[PM_TEXT2] = "Text 2      ";
+    arg[PM_TEXT3] = "Text 3      ";
+    arg[PM_TEXT4] = "Text 4      ";
+    arg[PM_TINT] = "Tint         ";
+    arg[PM_SAVE]  = "     [Confirm]";
+    arg[PM_RESTORE_DEFAULT] = "  [Load Default] ";    
+
+    Buff = malloc(32);    
+    box.hdr = "Custom Palette";
+    box.arg = arg;    
+    box.val = ColorVal;
+    box.selector = 0;
+    box.items = 9;
+    box.skip_init = 0;    
+    gCleanScreen();
+
+    ColorVal[PM_RESTORE_DEFAULT] = 0;
+    ColorVal[PM_SAVE] = 0;
+    //ColorVal[PM_SIZE] = 0;
+
+    // Cache the current palette settings
+    mem_copy(registery->options.pal_custom, OldPal, 7);
+    while (1) 
+    {        
+        mem_set(Buff, 0, 32);
+        ptr = Buff;
+
+        for (i = 0; i < 7; i++)
+        {
+            ColorVal[i] = ptr;
+            ptr = str_append_hex8(ColorVal[i], registery->options.pal_custom[i]);
+            ptr++;
+        }
+
+        //gCleanScreen();
+    
+        guiDrawPaletteBox(&box);        
+
+        joy = sysJoyWait();
+
+        if (joy == JOY_U) {            
+            box.selector = dec_mod(box.selector, PM_SIZE);                    
+            
+        }
+
+        if (joy == JOY_D) {            
+            box.selector = inc_mod(box.selector, PM_SIZE);            
+            
+        }
+
+        if (joy == JOY_B) {
+            break;
+        }
+
+        if (joy == JOY_L)
+        {
+            if ((box.selector <= PM_TEXT4 && registery->options.pal_custom[box.selector] > 0) ||
+                (box.selector <= PM_TINT && registery->options.pal_custom[box.selector] > 0))
+            {
+                //registery->options.pal_custom[box.selector]--;
+                registery->options.pal_custom[box.selector] = DecColor(registery->options.pal_custom[box.selector], box.selector);
+                sysUpdateCustomPal();                
+            }            
+        }
+                
+        if (joy == JOY_R)
+        {
+            if ((box.selector <= PM_TEXT4 && registery->options.pal_custom[box.selector] < 0x3F) ||
+                (box.selector <= PM_TINT && registery->options.pal_custom[box.selector] < 0x7))
+            {
+                //registery->options.pal_custom[box.selector]++;
+                registery->options.pal_custom[box.selector] = IncColor(registery->options.pal_custom[box.selector], box.selector);
+                sysUpdateCustomPal();                
+            }
+            
+        }
+
+        if (joy == JOY_A) {
+
+            if (box.selector == PM_SAVE)
+            {
+                changed = 1;
+                break;
+            }
+
+            if (box.selector == PM_RESTORE_DEFAULT)
+            {   
+                sysRestoreDefaultPal();
+                sysUpdateCustomPal();                                
+            }
+        }
+    }
+
+    if (changed) {
+                
+        edRegisterySave();
+    }
+    else
+    {   
+        // Restore the cached palette since the user canceled
+        ppuOFF();
+        
+        mem_copy(OldPal, registery->options.pal_custom, 7);
+        sysUpdateCustomPal();     
+    }
+    
+    free(32);
 }

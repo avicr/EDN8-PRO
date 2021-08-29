@@ -28,13 +28,12 @@ u8 edInit(u8 sst_mode) {
     gInit();
     guiInit();
 
-
     registery = malloc(sizeof (Registery));
     sys_inf = malloc(sizeof (SysInfo));
     maprout = malloc(256);
     ses_cfg = malloc(sizeof (SessionCFG)); //this memory allocated in OS memory area. It resets to 0x00 only at cold boot.
     fmInitMemory();
-    mem_set(sys_inf, 0, sizeof (SysInfo));
+    mem_set(sys_inf, 0, sizeof (SysInfo));    
 
     if (sst_mode)return 0; //all memory should be allocated before this point
     ses_cfg->ss_bank = 0;
@@ -77,6 +76,10 @@ u8 edInit(u8 sst_mode) {
         if (resp)return resp;
     }
 
+    // gAppendHex8(registery->options.ss_mode);
+    // gRepaint();
+    // sysJoyWait();
+
     resp = edBramBackup();
     if (resp)return resp;
 
@@ -107,9 +110,9 @@ u8 edLoadSysyInfo() {
 void edRun() {
 
     u8 resp;
-
+    
     while (1) {
-        resp = fmanager();
+        resp = fmanager("", 0);
         printError(resp);
         if (resp == FAT_DISK_ERR || resp == FAT_NOT_READY) {
             bi_cmd_disk_init();
@@ -148,7 +151,10 @@ u8 edRegisteryLoad() {
 
     crc = crcFast(registery, sizeof (Registery) - 2);
     if (crc != registery->crc)return ERR_REGI_CRC;
-
+    
+    // Apply the custom palette
+    sysUpdateCustomPal();
+    
     return 0;
 }
 
@@ -163,6 +169,14 @@ u8 edRegisteryReset() {
     registery->options.ss_key_load = SS_COMBO_OFF;
     registery->options.ss_mode = 1;
     registery->options.fds_auto_swp = 1;
+
+    registery->options.pal_custom[0] = 0x0F;
+    registery->options.pal_custom[1] = 0x2D;
+    registery->options.pal_custom[2] = 0x10;
+    registery->options.pal_custom[3] = 0x20;
+    registery->options.pal_custom[4] = 0x27;
+    registery->options.pal_custom[5] = 0x1A;
+    registery->options.pal_custom[6] = 0x0;
 
     volSetDefaults();
 
@@ -190,11 +204,10 @@ u8 edRegisterySave() {
     return 0;
 }
 
-u8 edSelectGame(u8 *path, u8 recent_add) {
-
-
+u8 edSelectGame(u8 *path, u8 recent_add) 
+{
     u8 resp;
-
+    u8* GameSaveFolder;    
     ppuOFF();
 
     //in case if file to ram been used before change the game
@@ -236,6 +249,23 @@ u8 edSelectGame(u8 *path, u8 recent_add) {
         gRepaint();
     }
 
+    // Allocate a big ass chunk of memory
+    GameSaveFolder = malloc(MAX_PATH_SIZE);
+    GameSaveFolder[0] = 0;
+
+    // First create a folder with the ROM name inside of EDN8/SNAP
+    str_append(GameSaveFolder, PATH_SNAP_DIR);
+    str_append(GameSaveFolder, "/");
+    str_append(GameSaveFolder, str_extract_name(registery->cur_game.path));
+    GameSaveFolder[str_lenght(GameSaveFolder) - 4] = 0;      // Remove the ".nes"
+    bi_cmd_dir_make(GameSaveFolder);
+
+    // Now create the default save folder (this is ok even if it already exists)
+    str_append(GameSaveFolder, "/");
+    str_append(GameSaveFolder, "DEFAULT");
+    str_copy("DEFAULT", ses_cfg->save_folder_name);
+    bi_cmd_dir_make(GameSaveFolder);
+    free(MAX_PATH_SIZE);
     ppuON();
 
     return 0;
@@ -325,6 +355,7 @@ u8 edStartGame(u8 usb_mode) {
     u8 ext_bios = 0;
     u8 resp;
     u16 i;
+    u8* GameSaveFolder;
     MapConfig *cfg = &ses_cfg->cfg;
     RomInfo *cur_game = &registery->cur_game.rom_inf;
 
@@ -332,6 +363,22 @@ u8 edStartGame(u8 usb_mode) {
     if (registery->cur_game.rom_inf.supported == 0 && !usb_mode)return ERR_MAP_NOT_SUPP;
     if (cur_game->usb_game && !usb_mode)return ERR_USB_GAME;
 
+    // Allocate a big ass chunk of memory
+    GameSaveFolder = malloc(MAX_PATH_SIZE);
+    GameSaveFolder[0] = 0;
+    // First create a folder with the ROM name inside of EDN8/SNAP
+    str_append(GameSaveFolder, PATH_SNAP_DIR);
+    str_append(GameSaveFolder, "/");
+    str_append(GameSaveFolder, str_extract_name(registery->cur_game.path));
+    GameSaveFolder[str_lenght(GameSaveFolder) - 4] = 0;      // Remove the ".nes"
+    bi_cmd_dir_make(GameSaveFolder);
+
+    // Now create the default save folder (this is ok even if it already exists)
+    str_append(GameSaveFolder, "/");
+    str_append(GameSaveFolder, "DEFAULT");
+    str_copy("DEFAULT", ses_cfg->save_folder_name);
+    bi_cmd_dir_make(GameSaveFolder);
+    free(MAX_PATH_SIZE);
 
     ppuOFF();
     resp = edBramRestore();
@@ -404,8 +451,8 @@ u8 edStartGame(u8 usb_mode) {
     }
 
     //mem_copy(&cfg, &ses_cfg->cfg, sizeof (MapConfig));
-    bi_start_app(cfg);
-
+    bi_start_app(cfg);    
+    
     return 0;
 }
 

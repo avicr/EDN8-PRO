@@ -1,5 +1,5 @@
 
-
+.feature force_range
 .exportzp _zp_src, _zp_dst, _zp_len, _zp_arg, _zp_ret, _zp_app
 .segment "ZEROPAGE"
 
@@ -199,7 +199,7 @@ _bi_copy_screen_safe:
 @0:;skip scroll setup at first iteration
     lda #0
     sta PPU_SCRL
-    lda #(0-6)
+    lda #$FA ;lda #(0-6)
     sta PPU_SCRL;
 @1:
     jsr vsync

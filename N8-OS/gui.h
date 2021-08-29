@@ -31,9 +31,19 @@ typedef struct {
     u8 act;
 } ListBox;
 
+typedef struct 
+{
+    u8 *hdr;
+    u8 selector;
+    u8 act;
+
+} AlphaBox;
+
 void guiInit();
 void guiDrawInfoBox(InfoBox *box);
+void guiDrawPaletteBox(InfoBox *box);
 void guiDrawListBox(ListBox *box);
+void guiDrawAlphaBox(AlphaBox *Box);
 u8 guiConfirmBox(u8 *str, u8 def);
 
 #endif	/* GUI_H */

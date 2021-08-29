@@ -109,12 +109,12 @@ ss_save:
     ldx #$ff
     txs
 ;************************************** fade to black
-    lda #$3F
-    sta PPU_ADDR
-    lda #$00
-    sta PPU_ADDR
-    lda #$3F
-    sta PPU_DATA
+    ; lda #$3F
+    ; sta PPU_ADDR
+    ; lda #$00
+    ; sta PPU_ADDR
+    ; lda #$3F
+    ; sta PPU_DATA
 ;************************************** bacup WRAM
     lda 0
     sta MEM_WRAM+0

@@ -40,5 +40,8 @@ u8 sysJoyRead();
 u8 sysJoyRead_raw();
 u8 sysJoyWait();
 
+void sysUpdateCustomPal();
+void sysRestoreDefaultPal();
+
 #endif	/* SYS_H */
 

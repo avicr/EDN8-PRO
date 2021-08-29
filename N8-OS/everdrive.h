@@ -34,14 +34,15 @@ typedef struct {
     u8 ss_mode;
     u8 ss_key_save;
     u8 ss_key_load;
-    u8 ss_key_menu;
+    u8 ss_key_menu;    
     u8 cheats;
     u8 swap_ab;
     u8 rst_delay;
     u8 fds_auto_swp;
     u8 sort_files;
     u8 autostart;
-    u8 vol_tbl[16]; //max
+    u8 vol_tbl[16]; 
+    u8 pal_custom[7]; //max
 } Options;
 
 typedef struct {
@@ -67,10 +68,11 @@ typedef struct {
 } SysInfo;
 
 typedef struct {
-    u8 ss_bank;
+    u8 ss_bank;    
     u8 hot_start;
     u8 boot_flag;
     u8 save_prg;
+    u8 save_folder_name[512];
     MapConfig cfg;
 } SessionCFG;
 

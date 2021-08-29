@@ -234,9 +234,9 @@ void gDrawFooter(u8 *str, u8 rows, u8 attr) {
 }
 
 void gAppendHex(void *src, u16 len) {
-
+    u8* param_src = src;
     while (len--) {
-        gAppendHex8(*((u8 *) src)++);
+        gAppendHex8(*(param_src++));
     }
 }
 

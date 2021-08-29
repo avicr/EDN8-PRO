@@ -189,6 +189,14 @@ u8 bi_cmd_file_open(u8 *path, u8 mode) {
     return bi_check_status();
 }
 
+u8 bi_cmd_dir_make(u8 *path) {
+
+    if (*path == 0)return ERR_NULL_PATH;
+    bi_cmd_tx(CMD_F_DIR_MK);
+    bi_tx_string(path);
+    return bi_check_status();
+}
+
 u8 bi_cmd_file_close() {
 
     bi_cmd_tx(CMD_F_FCLOSE);
@@ -212,7 +220,7 @@ u8 bi_cmd_file_read(void *dst, u32 len) {
 
     u8 resp;
     u32 block;
-
+    u8* param_dst = dst;
     while (len) {
 
         block = min(512, len);
@@ -223,10 +231,10 @@ u8 bi_cmd_file_read(void *dst, u32 len) {
         bi_fifo_rd(&resp, 1);
         if (resp)return resp;
 
-        bi_fifo_rd(dst, block);
+        bi_fifo_rd(param_dst, block);
 
         len -= block;
-        (u8 *) dst += block;
+        param_dst += block;
     }
 
     return 0;
@@ -236,6 +244,7 @@ u8 bi_cmd_file_write(void *src, u32 len) {
 
     u8 resp;
     u32 block;
+    u8* param_src = src;
 
     bi_cmd_tx(CMD_F_FWR);
     bi_fifo_wr(&len, 4);
@@ -247,10 +256,10 @@ u8 bi_cmd_file_write(void *src, u32 len) {
         bi_fifo_rd(&resp, 1);
         if (resp)return resp;
 
-        bi_fifo_wr(src, block);
+        bi_fifo_wr(param_src, block);
 
         len -= block;
-        (u8*) src += block;
+        param_src += block;
     }
 
     return bi_check_status();
@@ -479,32 +488,32 @@ u8 bi_cmd_fla_wr_sdc(u32 addr, u32 len) {
 //****************************************************************************** 
 
 void bi_fifo_wr(void *data, u16 len) {
-
+    u8* param_data = data;
 
     while (len) {
-        zp_src = data;
+        zp_src = param_data;
         zp_len = len;
         if (zp_len > 256)zp_len = 256;
         bi_fifo_write(); //can transfer 256 bytes max
         if (len <= 256)return;
         len -= 256;
-        (u8 *) data += 256;
+        param_data += 256;
     }
 
 }
 
 void bi_fifo_rd(void *data, u16 len) {
-
+    u8* param_data = data;
 
     while (len) {
 
-        zp_dst = data;
+        zp_dst = param_data;
         zp_len = len;
         if (zp_len > 256)zp_len = 256;
         bi_fifo_read(); //can transfer 256 bytes max
         if (len <= 256)return;
         len -= 256;
-        (u8 *) data += 256;
+        param_data += 256;
     }
 
     /*

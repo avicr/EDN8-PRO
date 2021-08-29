@@ -6,13 +6,22 @@ void ppuSetAddr(u16 addr);
 void ppuSetPal(u8 *pal);
 u8 vram_bug;
 
-//black, gray, black, text
+
+// Custom purple palette
+// static u8 pal_std[] = {
+//     0x0F, 0x2d, 0x0F, 0x20,
+//     0x0F, 0x2d, 0x0F, 0x23,
+//     0x0F, 0x2d, 0x0F, 0x3C,
+//     0x0F, 0x2d, 0x0F, 0x1A,
+// };
+
 static u8 pal_std[] = {
     0x0F, 0x2d, 0x0F, 0x10,
     0x0F, 0x2d, 0x0F, 0x20,
     0x0F, 0x2d, 0x0F, 0x27,
     0x0F, 0x2d, 0x0F, 0x1A,
 };
+
 static u8 pal_safe[] = {
     0x0F, 0x1c, 0x0F, 0x20,
     0x0F, 0x0F, 0x0F, 0x0F,
@@ -25,6 +34,13 @@ static u8 pal_black[] = {
     0x0F, 0x0F, 0x0F, 0x0F,
     0x0F, 0x0F, 0x0F, 0x0F,
     0x0F, 0x0F, 0x0F, 0x0F,
+};
+
+static u8 pal_purple[] = {
+    0x13, 0x13, 0x13, 0x13,
+    0x13, 0x13, 0x13, 0x13,
+    0x13, 0x13, 0x13, 0x13,
+    0x13, 0x13, 0x13, 0x13,
 };
 
 void sysInit() {
@@ -62,11 +78,15 @@ void sysInit() {
 void ppuSetPal(u8 *pal) {
 
     u8 i;
+    
     sysVsync();
-    ppuSetAddr(0x3F00);
-    for (i = 0; i < 16; i++) {
+    ppuSetAddr(0x3F00);    
+    for (i = 0; i < 16; i++) {                
         PPU_DATA = pal[i];
     }
+        
+    //ppuSetAddr(0x2000);    
+    
 }
 
 void ppuSetAddr(u16 addr) {
@@ -89,13 +109,17 @@ void ppuOFF() {
 
 void ppuON() {
     sysVsync();
-    PPU_MASK = 0x0A;
+    PPU_MASK = (registery->options.pal_custom[6] << 5)  | 0x0A;
 }
 
 void sysPalInit(u8 fade_to_black) {
 
     u8 i;
-    if (fade_to_black) {
+    if (fade_to_black == 2)
+    {
+        ppuSetPal(pal_purple);
+    }
+    else if (fade_to_black ) {
 
         ppuSetPal(pal_black);
 
@@ -110,7 +134,7 @@ void sysPalInit(u8 fade_to_black) {
             PPU_DATA = 0x00;
         }
 
-    } else {
+    } else {        
         REG_VRM_ATTR = VRM_MODE_STD;
         ppuSetPal(pal_std);
     }
@@ -197,3 +221,44 @@ u8 sysVramBug() {
     return vram_bug;
 }
 
+void sysUpdateCustomPal()
+{
+    int i = 0;
+    
+    // background 1 color
+    for (i = 0; i < 16; i += 4)
+    {
+        pal_std[i] = registery->options.pal_custom[0];
+        pal_std[i+2] = registery->options.pal_custom[0];
+    }
+
+    // background 2 color
+    for (i = 1; i < 16; i += 4)
+    {
+        pal_std[i] = registery->options.pal_custom[1];        
+    }
+    
+    // text colors
+    pal_std[3] = registery->options.pal_custom[2];
+    pal_std[7] = registery->options.pal_custom[3];
+    pal_std[11] = registery->options.pal_custom[4];
+    pal_std[15] = registery->options.pal_custom[5];
+    
+    //gCleanScreen();
+    //gRepaint();
+        
+    sysPalInit(0);
+    ppuSetScroll(0, 0);
+    ppuON();
+}
+
+void sysRestoreDefaultPal()
+{
+    registery->options.pal_custom[0] = 0x0F;
+    registery->options.pal_custom[1] = 0x2D;
+    registery->options.pal_custom[2] = 0x10;
+    registery->options.pal_custom[3] = 0x20;
+    registery->options.pal_custom[4] = 0x27;
+    registery->options.pal_custom[5] = 0x1A;
+    registery->options.pal_custom[6] = 0x0;
+}

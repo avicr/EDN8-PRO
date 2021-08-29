@@ -1,6 +1,6 @@
 MAKEFLAGS= -j8
 
-CC65_HOME = E:/devtools/cc65
+CC65_HOME = I:/Work/nes
 SYS	= nes
 
 
@@ -41,7 +41,7 @@ OFILES_B = $(OBJ_B:%.o=$(BDIR)/%.o)
 
 	
 all: $(OBJ) boot
-	$(LD) -C nes.cfg -o nesos.nes $(OFILES) nes.lib -m $(BDIR)/mem.map
+	$(LD) -C nescustom.cfg -o nesos.nes $(OFILES) nes.lib -m $(BDIR)/mem.map
 	$(TS) -f nesos.nes -a 0x20000
 	$(MR) nesos.nes
 	
