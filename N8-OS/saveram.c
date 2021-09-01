@@ -71,6 +71,10 @@ u8 srmBackupSS(u8 bank, u8 bIsSafe) {
         // We've free'ed path already, but this is fine as the memory shouldn't have been recclaimed yet
         // (come on, it's not like the NES is threaded...)
         bi_cmd_usb_wr(path, 513); 
+
+        // Give the everdrive time to write that data
+        sysVsync();
+        sysVsync();
     }
 
     resp = bi_cmd_file_write_mem(ADDR_SST_HW, SIZE_SST_HW); //internal system memory and hardware registers
@@ -111,6 +115,10 @@ u8 srmRestoreSS(u8 bank, u8 bIsSafe) {
         // We've free'ed path already, but this is fine as the memory shouldn't have been recclaimed yet
         // (come on, it's not like the NES is threaded...)
         bi_cmd_usb_wr(path, 513); 
+
+        // Give the everdrive time to write that data
+        sysVsync();
+        sysVsync();
     }
 
     resp = bi_cmd_file_read_mem(ADDR_SST_HW, SIZE_SST_HW); //internal system memory and hardware registers

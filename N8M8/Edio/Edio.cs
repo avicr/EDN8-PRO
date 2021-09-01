@@ -989,7 +989,7 @@ namespace edlink_n8
             if (MessageCode == 'G')
             {
                 byte[] FileNameBytes = rxData(513);
-                string FileName = System.Text.Encoding.Default.GetString(FileNameBytes).Trim('\0');
+                string FileName = System.Text.Encoding.Default.GetString(FileNameBytes).Split('\0')[0];
 
                 EventHandler<string> handler = OnGameStarted;
                 if (handler != null)
@@ -1001,7 +1001,7 @@ namespace edlink_n8
             {
                 // Save state saved
                 byte[] FileNameBytes = rxData(513);
-                string FileName = System.Text.Encoding.Default.GetString(FileNameBytes).Trim('\0');
+                string FileName = System.Text.Encoding.Default.GetString(FileNameBytes).Split('\0')[0];
 
                 EventHandler<string> handler = OnSaveStateSaved;
                 if (handler != null)
@@ -1013,7 +1013,7 @@ namespace edlink_n8
             {
                 // Save state loaded
                 byte[] FileNameBytes = rxData(513);
-                string FileName = System.Text.Encoding.Default.GetString(FileNameBytes).Trim('\0');
+                string FileName = System.Text.Encoding.Default.GetString(FileNameBytes).Split('\0')[0];
 
                 EventHandler<string> handler = OnSaveStateLoaded;
                 if (handler != null)
@@ -1025,7 +1025,7 @@ namespace edlink_n8
             {
                 // Save state loaded
                 byte[] FileNameBytes = rxData(513);
-                string FileName = System.Text.Encoding.Default.GetString(FileNameBytes).Trim('\0');
+                string FileName = System.Text.Encoding.Default.GetString(FileNameBytes).Split('\0')[0];
 
                 EventHandler<string> handler = OnGameStopped;
                 if (handler != null)
