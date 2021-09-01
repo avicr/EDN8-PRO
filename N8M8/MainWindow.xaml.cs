@@ -1,16 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
+using System.ComponentModel;
 using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
+using edlink_n8;
 using N8M8.Controls;
 
 namespace N8M8
@@ -20,11 +12,26 @@ namespace N8M8
 	/// </summary>
 	public partial class MainWindow : Window
 	{
-			
+		// Here we go putting important things in the main window again (probably should use a singleton)
+		static public Edio TheEdio;
+		static public Usbio TheUsbio;
+
 		public MainWindow()
 		{			
 			InitializeComponent();
-		
+
+			if (!DesignerProperties.GetIsInDesignMode(this))
+			{
+				try
+				{
+					TheEdio = new Edio();
+					TheUsbio = new Usbio(TheEdio);
+				}
+				catch (Exception e)
+				{
+					MessageBox.Show("Error initializing everdrive: " + e.Message);
+				}
+			}
 		}
 
 		private void FileBrowser_MouseDoubleClick(object sender, MouseButtonEventArgs e)

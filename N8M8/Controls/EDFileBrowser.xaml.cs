@@ -24,38 +24,19 @@ namespace N8M8.Controls
 	/// Interaction logic for EDFileBrowser.xaml
 	/// </summary>
 	public partial class EverdriveMate : UserControl
-	{		
-		protected Edio TheEdio;
-		protected Usbio TheUsbio;
+	{				
 		protected string CurrentFolderPath = "";
 
 		// Local relative PC directory to copy everdive files to
 		public const string CacheDirectory = "./FileCache/";
 
+		// References to the objects in MainWindow
+		static protected Edio TheEdio;
+		static protected Usbio TheUsbio;
+
 		public EverdriveMate()
 		{			
 			InitializeComponent();
-
-			if (!DesignerProperties.GetIsInDesignMode(this))
-			{
-				try
-				{
-					TheEdio = new Edio();
-					TheUsbio = new Usbio(TheEdio);
-
-					if (TheEdio != null)
-					{
-						Browse("/", false);
-					}
-
-					SetupDelegates();					
-
-				}
-				catch (Exception e)
-				{
-					MessageBox.Show("Error initializing everdrive: " + e.Message);
-				}
-			}
 		}
 
 		public void SetupDelegates()
@@ -319,6 +300,19 @@ namespace N8M8.Controls
 
 		private void UserControl_Loaded(object sender, RoutedEventArgs e)
 		{
+			if (!DesignerProperties.GetIsInDesignMode(this))
+			{
+				if (MainWindow.TheEdio != null)
+				{
+					TheEdio = MainWindow.TheEdio;
+					TheUsbio = MainWindow.TheUsbio;
+					Browse("/", false);
+				}
+
+				SetupDelegates();
+
+			}
+
 			Window OwningWindow = Window.GetWindow(this);
 			OwningWindow.Closing += OnWindowClosing;
 		}
