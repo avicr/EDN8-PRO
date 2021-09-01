@@ -1,0 +1,33 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net5.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="Images\back.png" />
+    <None Remove="Images\File.png" />
+    <None Remove="Images\GreenBattery.png" />
+    <None Remove="Images\led_off.png" />
+    <None Remove="Images\led_on.png" />
+    <None Remove="Images\Nes.png" />
+    <None Remove="Images\ThumbSelect.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="System.IO.Ports" Version="5.0.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="Images\back.png" />
+    <Resource Include="Images\File.png" />
+    <Resource Include="Images\GreenBattery.png" />
+    <Resource Include="Images\led_off.png" />
+    <Resource Include="Images\led_on.png" />
+    <Resource Include="Images\Nes.png" />
+    <Resource Include="Images\ThumbSelect.png" />
+  </ItemGroup>
+
+</Project>
