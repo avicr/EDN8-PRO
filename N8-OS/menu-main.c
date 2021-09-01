@@ -402,7 +402,7 @@ void mmAbout() {
 
     gSetPal(PAL_B1);
     //gConsPrint("");
-    gConsPrint("EverDrive N8 PRO");
+    gConsPrint("EverDrive N8 PRO - MOD3");
     gConsPrint("");
 
     gSetPal(PAL_B3);

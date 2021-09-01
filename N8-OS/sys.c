@@ -163,7 +163,7 @@ u8 sysJoyRead_raw() {
     u16 delay;
     u8 joy = 0;
     u8 i;
-
+    
     delay = bi_get_ticks();
     while (bi_get_ticks() - delay < 10); //antiglitch
 
@@ -173,10 +173,11 @@ u8 sysJoyRead_raw() {
     for (i = 0; i < 8; i++) {
         joy <<= 1;
         if ((JOY_PORT1 | JOY_PORT2) & 3)joy |= 1;
-    }
+    }    
 
+    
     usbListener();
-
+    
     return joy;
 }
 

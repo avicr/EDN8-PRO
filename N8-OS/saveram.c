@@ -53,9 +53,25 @@ u8 srmBackupSS(u8 bank, u8 bIsSafe) {
 
     path = malloc(MAX_PATH_SIZE);
     srmGetPathSS(path, bank, bIsSafe);
+            
     resp = bi_cmd_file_open(path, FA_OPEN_ALWAYS | FA_WRITE);
+    
+    // Give the everdrive a little time to complete the file open command
+    sysVsync();
+    sysVsync();
     free(MAX_PATH_SIZE);
     if (resp)return resp;
+
+    // Really should move these M8 commands to a function instead of copying this if everywhere...
+    if (ses_cfg->m8_connected)
+    {
+        // Send the save state saved message
+        bi_cmd_usb_wr("!S", 2);
+
+        // We've free'ed path already, but this is fine as the memory shouldn't have been recclaimed yet
+        // (come on, it's not like the NES is threaded...)
+        bi_cmd_usb_wr(path, 513); 
+    }
 
     resp = bi_cmd_file_write_mem(ADDR_SST_HW, SIZE_SST_HW); //internal system memory and hardware registers
     if (resp)return resp;
@@ -84,7 +100,18 @@ u8 srmRestoreSS(u8 bank, u8 bIsSafe) {
     resp = bi_cmd_file_open(path, FA_READ);
     free(MAX_PATH_SIZE);
     if (resp == FAT_NO_FILE)return 0;
-    if (resp)return resp;
+    if (resp)return resp;    
+    
+    // Really should move these M8 commands to a function instead of copying this if everywhere...
+    if (ses_cfg->m8_connected)
+    {
+        // Send the save state loaded message
+        bi_cmd_usb_wr("!L", 2);
+
+        // We've free'ed path already, but this is fine as the memory shouldn't have been recclaimed yet
+        // (come on, it's not like the NES is threaded...)
+        bi_cmd_usb_wr(path, 513); 
+    }
 
     resp = bi_cmd_file_read_mem(ADDR_SST_HW, SIZE_SST_HW); //internal system memory and hardware registers
     if (resp)return resp;

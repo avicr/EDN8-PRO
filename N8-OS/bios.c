@@ -653,6 +653,17 @@ void bi_exit_game() {
     cfg.map_idx = 255;
     cfg.map_ctrl = MAP_CTRL_UNLOCK;
 
+    // Really should move these M8 commands to a function instead of copying this if everywhere...
+    if (ses_cfg->m8_connected)
+    {
+        // Send the exit  message
+        bi_cmd_usb_wr("!E", 2);
+
+        // We've free'ed path already, but this is fine as the memory shouldn't have been recclaimed yet
+        // (come on, it's not like the NES is threaded...)
+        bi_cmd_usb_wr(registery->cur_game.path, 513); 
+    }
+
     bi_cfg_set(&cfg);
     asm("jmp ($FFFC)");
 }

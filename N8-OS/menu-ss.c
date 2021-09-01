@@ -244,6 +244,9 @@ void app_inGameMenu() {
     items[SS_SIZE] = 0;    
     ss_bank_hex = decToBcd(ses_cfg->ss_bank);
 
+    // Read anything off the USB
+    usbListener();
+
     //quick ss section
     if (ss_src != 0xff && ss_src == registery->options.ss_key_load) {
         ppuOFF();        
@@ -258,6 +261,7 @@ void app_inGameMenu() {
         if (resp)printError(resp);
         ss_return();
     }
+    
     
     sysUpdateCustomPal();
     box.hdr = "ses_cfg->save_folder_name";
@@ -290,7 +294,7 @@ void app_inGameMenu() {
         guiDrawListBox(&box);
         
 
-        if (box.act == ACT_EXIT) {
+        if (box.act == ACT_EXIT) {            
             ss_return();
         }
 

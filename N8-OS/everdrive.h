@@ -71,8 +71,9 @@ typedef struct {
     u8 ss_bank;    
     u8 hot_start;
     u8 boot_flag;
-    u8 save_prg;
+    u8 save_prg;    
     u8 save_folder_name[512];
+    u8 m8_connected;
     MapConfig cfg;
 } SessionCFG;
 

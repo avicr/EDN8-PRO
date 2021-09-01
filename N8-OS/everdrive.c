@@ -265,8 +265,13 @@ u8 edSelectGame(u8 *path, u8 recent_add)
     str_append(GameSaveFolder, "DEFAULT");
     str_copy("DEFAULT", ses_cfg->save_folder_name);
     bi_cmd_dir_make(GameSaveFolder);
+    gAppendString(ses_cfg->save_folder_name);
+
+    // Give the everdrive a little time to complete the dir make commands before freeing the memory    
+    sysVsync();
+    sysVsync();
     free(MAX_PATH_SIZE);
-    ppuON();
+    
 
     return 0;
 }
@@ -355,7 +360,7 @@ u8 edStartGame(u8 usb_mode) {
     u8 ext_bios = 0;
     u8 resp;
     u16 i;
-    u8* GameSaveFolder;
+    u8* GameSaveFolder;   
     MapConfig *cfg = &ses_cfg->cfg;
     RomInfo *cur_game = &registery->cur_game.rom_inf;
 
@@ -450,7 +455,19 @@ u8 edStartGame(u8 usb_mode) {
         if (resp)return resp;
     }
 
+    // Really should move these M8 commands to a function instead of copying this if everywhere...
+    if (ses_cfg->m8_connected)
+    {
+        bi_cmd_usb_wr("!G", 2);
+        bi_cmd_usb_wr(registery->cur_game.path, 513);    
+    }
+    
+    // Give the USB write a little time to finish
+    //sysVsync();    
+
     //mem_copy(&cfg, &ses_cfg->cfg, sizeof (MapConfig));
+    // Read anything off the usb
+    usbListener();
     bi_start_app(cfg);    
     
     return 0;
