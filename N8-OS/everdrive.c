@@ -206,8 +206,7 @@ u8 edRegisterySave() {
 
 u8 edSelectGame(u8 *path, u8 recent_add) 
 {
-    u8 resp;
-    u8* GameSaveFolder;    
+    u8 resp;    
     ppuOFF();
 
     //in case if file to ram been used before change the game
@@ -248,7 +247,14 @@ u8 edSelectGame(u8 *path, u8 recent_add)
         gCleanScreen();
         gRepaint();
     }
+       
+    return 0;
+}
 
+void edCreateDefaultSaveFolder()
+{
+    u8* GameSaveFolder;    
+    
     // Allocate a big ass chunk of memory
     GameSaveFolder = malloc(MAX_PATH_SIZE);
     GameSaveFolder[0] = 0;
@@ -271,9 +277,6 @@ u8 edSelectGame(u8 *path, u8 recent_add)
     sysVsync();
     sysVsync();
     free(MAX_PATH_SIZE);
-    
-
-    return 0;
 }
 
 void edGetMapConfig(RomInfo *inf, MapConfig *cfg) {

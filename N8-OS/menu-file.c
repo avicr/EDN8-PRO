@@ -137,6 +137,10 @@ u8 fimeRomMenu(u8 *path) {
     if (box.selector == RM_SEL_START || box.selector == RM_SEL_ONLY) {
         resp = edSelectGame(path, 1);
         if (resp)return resp;
+
+        // Create the default save folder (broken up from edSelectGame to avoid running out of mem)
+        edCreateDefaultSaveFolder();  
+
         if (box.selector == RM_SEL_START) {
             return edStartGame(0);
         }

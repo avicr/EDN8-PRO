@@ -79,11 +79,62 @@ namespace edlink_n8
             }
 
         }
+        //public void loadGame(NesRom rom, string map_path)
+        //{
+
+        //    int resp;
+
+        //    byte[] id_bin = rom.getRomID();
+        //    byte[] prg = rom.PrgData;
+        //    byte[] chr = rom.ChrData;
+
+        //    cmd(cmd_sel_game);
+        //    txString("USB:" + Path.GetFileName(rom.Name));
+        //    resp = edio.rx8();//system ready to receive id
+        //    edio.fifoWR(id_bin, 0, id_bin.Length);
+        //    resp = edio.rx8();
+        //    if (resp != 0)
+        //    {
+        //        throw new Exception("Game select error 0x: " + resp.ToString("X2"));
+        //    }
+        //    int map_idx = edio.rx16();
+
+        //    if (map_idx != rom.Mapper)
+        //    {
+        //        Console.WriteLine("map reloc: " + map_idx);
+        //    }
+        //    if (map_path == null)
+        //    {
+        //        map_path = getTestMapper(map_idx);
+        //    }
+
+        //    cmd(cmd_run_game);
+        //    byte Blerg = edio.rx8();//exec COMES FROM app_halt_exec in assembly!!
+
+        //    //Blerg = edio.rx8(); // TEST I ADDED THIS
+        //    edio.memWR(rom.PrgAddr, prg, 0, prg.Length);
+        //    edio.memWR(rom.ChrAddr, chr, 0, chr.Length);
+
+        //    if (map_path == null)
+        //    {
+        //        MapConfig Config = new MapConfig(rom);
+        //        mapLoadSDC(map_idx, Config); // Config was NULL but I changed it
+
+        //        //edio.memWR(Edio.ADDR_CFG, Config.getBinary(), 0, Config.getBinary().Length);
+        //    }
+        //    else
+        //    {
+        //        Console.WriteLine("ext mapper: " + map_path);
+        //        edio.fpgInit(File.ReadAllBytes(map_path), null);
+        //    }
+
+        //}
+
         public void loadGame(NesRom rom, string map_path)
         {
 
             int resp;
-   
+
             byte[] id_bin = rom.getRomID();
             byte[] prg = rom.PrgData;
             byte[] chr = rom.ChrData;
@@ -109,25 +160,21 @@ namespace edlink_n8
             }
 
             cmd(cmd_run_game);
-            byte Blerg = edio.rx8();//exec COMES FROM app_halt_exec in assembly!!
-            
-            //Blerg = edio.rx8(); // TEST I ADDED THIS
+            edio.rx8();//exec
+
             edio.memWR(rom.PrgAddr, prg, 0, prg.Length);
             edio.memWR(rom.ChrAddr, chr, 0, chr.Length);
-                        
+
             if (map_path == null)
             {
-                MapConfig Config = new MapConfig(rom);
-                mapLoadSDC(map_idx, Config); // Config was NULL but I changed it
-                
-                //edio.memWR(Edio.ADDR_CFG, Config.getBinary(), 0, Config.getBinary().Length);
+                mapLoadSDC(map_idx, null);
             }
             else
             {
                 Console.WriteLine("ext mapper: " + map_path);
                 edio.fpgInit(File.ReadAllBytes(map_path), null);
             }
-            
+
         }
 
         public void loadOS(NesRom rom, string map_path)

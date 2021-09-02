@@ -1,11 +1,13 @@
 ﻿using System;
-using System.IO;
+using System.IO.Compression;
 using System.Diagnostics;
 using edlink_n8;
 using System.Windows.Controls;
 using System.Windows;
 using System.Windows.Threading;
 using System.ComponentModel;
+using System.IO;
+using System.Windows.Shapes;
 
 namespace N8M8.Controls
 {
@@ -46,7 +48,7 @@ namespace N8M8.Controls
 			}
 			else
 			{
-				LblGame.Content = Path.GetFileName(FilePath);
+				LblGame.Content = System.IO.Path.GetFileName(FilePath);
 
 				// Assume default save state folder/slot on game start
 				LblSaveFolder.Content = "DEFAULT";
@@ -100,5 +102,61 @@ namespace N8M8.Controls
 			}
 			Debug.WriteLine("Save State Saved: " + Args.FolderName + " " + Args.SlotNumber.ToString());
 		}
+
+		private void MainPanel_PreviewGiveFeedback(object sender, GiveFeedbackEventArgs e)
+		{
+			MainPanel.Background.Opacity = 0.5;
+		}
+
+		private void MainPanel_PreviewDragEnter(object sender, DragEventArgs e)
+		{
+			Highlight.Visibility = Visibility.Visible;
+		}
+
+		private void MainPanel_PreviewDragLeave(object sender, DragEventArgs e)
+		{
+			Highlight.Visibility = Visibility.Hidden;
+		}
+
+		private void MainPanel_PreviewDragOver(object sender, DragEventArgs e)
+		{
+			
+		}
+
+		private void MainPanel_PreviewDrop(object sender, DragEventArgs e)
+		{
+			Highlight.Visibility = Visibility.Hidden;
+			// If this is a file drop
+			if (e.Data.GetDataPresent(DataFormats.FileDrop))
+			{
+				// Grab the first string
+				string FilePath = ((string[])e.Data.GetData(DataFormats.FileDrop))[0];
+				
+				// Unzip the ROM
+				if (FilePath.ToLower().EndsWith(".zip"))
+				{
+					//ZipFile.ExtractToDirectory(FilePath, "FileCache/Unzips/");
+					ZipArchive Zip = ZipFile.Open(FilePath, ZipArchiveMode.Read);
+					
+					foreach (ZipArchiveEntry Entry in Zip.Entries)
+					{
+						if (Entry.Name.ToLower().EndsWith(".nes"))
+						{
+							FilePath = Directory.GetCurrentDirectory() + "/FileCache/" + Entry.Name;
+							if (File.Exists(FilePath))
+							{
+								File.Delete(FilePath);
+							}
+
+							Entry.ExtractToFile(FilePath);
+						}
+					}
+					
+
+				}
+
+				MainWindow.LoadROM(FilePath);
+			}
+		}		
 	}
 }

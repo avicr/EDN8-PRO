@@ -5,40 +5,42 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:N8M8.Controls"
              mc:Ignorable="d" 
-             d:DesignHeight="450" d:DesignWidth="800" Loaded="UserControl_Loaded">
+             d:DesignHeight="450" d:DesignWidth="800" Loaded="UserControl_Loaded" AllowDrop="True">
+
+    <Grid>
+        <Rectangle x:Name="Highlight" Visibility="Hidden" Panel.ZIndex="1" Fill="#4C7DCDEB" IsHitTestVisible="False"></Rectangle>
+        <DockPanel x:Name="MainPanel" LastChildFill="True" Background="#FFE5E5E5" AllowDrop="True" PreviewGiveFeedback="MainPanel_PreviewGiveFeedback" PreviewDragEnter="MainPanel_PreviewDragEnter" PreviewDragLeave="MainPanel_PreviewDragLeave" PreviewDragOver="MainPanel_PreviewDragOver" PreviewDrop="MainPanel_PreviewDrop">
+            <TextBlock x:Name="DropText" DockPanel.Dock="Right" Background="#FFE5E5E5" HorizontalAlignment="Center" VerticalAlignment="Center"  FontSize="16" FontFamily="Bahnschrift" Margin="0,0,20,0" TextAlignment="Center" Text="Drag ROM here to deploy" IsHitTestVisible="False"></TextBlock>
+            <StackPanel x:Name="BigStackPanel" DockPanel.Dock="Top" Orientation="Vertical" Grid.IsSharedSizeScope="True" Background="#FFE5E5E5" IsHitTestVisible="False">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" SharedSizeGroup="Label"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Label Grid.Column="0" Content="Loaded Game" HorizontalAlignment="Left" FontFamily="Bahnschrift" FontSize="14" Margin="10,0,0,0" IsHitTestVisible="False"/>
+                    <Label x:Name="LblGame" Grid.Column="1" Content="None" Margin="30,0,0,0" FontFamily="Bahnschrift" FontSize="14" IsHitTestVisible="False"/>
+                </Grid>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" SharedSizeGroup="Label"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Label Grid.Column="0" Content="Save Folder" HorizontalAlignment="Left" Margin="10,-6,0,0" FontFamily="Bahnschrift" FontSize="14" IsHitTestVisible="False"/>
+                    <Label x:Name="LblSaveFolder" Grid.Column="1" HorizontalAlignment="Stretch" Content="" Margin="30,-6,0,0" FontFamily="Bahnschrift" FontSize="14" IsHitTestVisible="False"/>
+                </Grid>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" SharedSizeGroup="Label"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Label Grid.Column="0" Content="Save Slot" HorizontalAlignment="Left" Width="71" Margin="10,-6,0,0" FontFamily="Bahnschrift" FontSize="14" IsHitTestVisible="False"/>
+                    <Label x:Name="LblSaveSlot" Grid.Column="1" HorizontalAlignment="Stretch" Content="" Margin="30,-6,0,0" FontFamily="Bahnschrift" FontSize="14" IsHitTestVisible="False"/>
+                </Grid>
 
 
-    <DockPanel LastChildFill="True">
-        <StackPanel DockPanel.Dock="Top" Orientation="Vertical" Grid.IsSharedSizeScope="True" Background="#FFE5E5E5">
-            <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto" SharedSizeGroup="Label"/>
-                    <ColumnDefinition Width="*"/>
-                </Grid.ColumnDefinitions>
-                <Label Grid.Column="0" Content="LoadedGame" HorizontalAlignment="Left"/>
-                <Label x:Name="LblGame" Grid.Column="1" Content="None" Margin="30,0,0,0"/>
-            </Grid>
-            <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto" SharedSizeGroup="Label"/>
-                    <ColumnDefinition Width="*"/>
-                </Grid.ColumnDefinitions>
-                <Label Grid.Column="0" Content="Save Folder" HorizontalAlignment="Left" Width="71" Margin="0,-6,0,0"/>
-                <Label x:Name="LblSaveFolder" Grid.Column="1" HorizontalAlignment="Stretch" Content="" Margin="30,-6,0,0"/>
-            </Grid>
-            <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto" SharedSizeGroup="Label"/>
-                    <ColumnDefinition Width="*"/>
-                </Grid.ColumnDefinitions>
-                <Label Grid.Column="0" Content="Save Slot" HorizontalAlignment="Left" Width="71" Margin="0,-6,0,0"/>
-                <Label x:Name="LblSaveSlot" Grid.Column="1" HorizontalAlignment="Stretch" Content="" Margin="30,-6,0,0"/>
-            </Grid>
-
-
-        </StackPanel>
-    </DockPanel>
-
+            </StackPanel>
+        </DockPanel>
+    </Grid>
 
 
 </UserControl>

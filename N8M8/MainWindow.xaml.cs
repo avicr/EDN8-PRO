@@ -4,6 +4,7 @@ using System.ComponentModel;
 using System.Windows.Input;
 using edlink_n8;
 using System.Threading;
+using System.IO.Compression;
 
 namespace N8M8
 {
@@ -56,34 +57,48 @@ namespace N8M8
 			{
 				// Grab the first string
 				string FilePath = ((string[])e.Data.GetData(DataFormats.FileDrop))[0];
+				if (FilePath.ToLower().EndsWith(".zip"))
+				{
+					//ZipFile.ExtractToDirectory(FilePath, "FileCache/Unzips/");
+					ZipArchive Zip = ZipFile.Open(FilePath, ZipArchiveMode.Read);
+					var Blah = Zip.Entries;
+				}
 				LoadROM(FilePath);
 			}
 		}
 
-		void LoadROM(string RomPath)
+		public static void LoadROM(string RomPath)
 		{			
 			Console.WriteLine("ROM loading...");
 
-			NesRom Rom = new NesRom(RomPath);
-			Rom.print();
-
-			if (Rom.Type == NesRom.ROM_TYPE_OS)
+			try
 			{
-				TheUsbio.loadOS(Rom, null);
+				TheEdio.EnableAsync(false);
+				NesRom Rom = new NesRom(RomPath);
+			
+				Rom.print();
+
+				if (Rom.Type == NesRom.ROM_TYPE_OS)
+				{
+					TheUsbio.loadOS(Rom, null);
+				}
+				else
+				{
+					TheUsbio.loadGame(Rom, null);									
+				}
+
+				Console.WriteLine();
+				
+				// Reconnect since the everdrive has to soft reboot to load a new ROM
+				TheEdio.getConfig().print();
+				Thread.Sleep(1000);
+				TheUsbio.Connect();
+				TheEdio.EnableAsync(true);
 			}
-			else
+			catch (Exception e)
 			{
-				TheUsbio.loadGame(Rom, null);				
-				TheEdio.Reinit();
+				MessageBox.Show(e.Message);
 			}
-
-			Console.WriteLine();
-
-			TheEdio.EnableAsync(false);
-			TheEdio.getConfig().print();
-			Thread.Sleep(1000);
-			TheUsbio.Connect();
-			TheEdio.EnableAsync(true);
 		}
 	}
 }

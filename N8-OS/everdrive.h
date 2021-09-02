@@ -91,6 +91,7 @@ u8 edRegisterySave();
 void edGetMapPath(u8 map_pack, u8 *path);
 u8 edBramBackup();
 void edRebootGame();
+void edCreateDefaultSaveFolder();
 
 void usbListener();
 void printError(u8 code);

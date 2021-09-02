@@ -435,7 +435,28 @@ namespace edlink_n8
             int resp;
             txCMD(CMD_STATUS);
             resp = rx16();
-            if ((resp & 0xff00) != 0xA500) throw new Exception("unexpected status response (" + resp.ToString("X4") + ")");
+
+            // This is a game started message!
+            if (resp == 0x4721)
+            {
+                // TODO Put this in a function
+                byte[] FileNameBytes = rxData(513);
+                string FileName = System.Text.Encoding.Default.GetString(FileNameBytes).Split('\0')[0];
+
+                EventHandler<string> handler = OnGameStarted;
+                if (handler != null)
+                {
+                    handler(this, FileName.Trim('\0'));
+                }
+
+                // Let's try to read that status code again
+                resp = rx16();
+            }
+            if ((resp & 0xff00) != 0xA500)
+            {
+                //if (resp == 
+                throw new Exception("unexpected status response (" + resp.ToString("X4") + ")");
+            }
             return resp & 0xff;
         }
 

@@ -107,10 +107,13 @@ void usbSelectGame() {
 
     bi_rx_string(path);
 
-    resp = edSelectGame(path, 0);
+    resp = edSelectGame(path, 0);    
+
     free(MAX_PATH_SIZE);
     bi_cmd_usb_wr(&resp, 1);
 
+    // Create the default save folder (broken up from edSelectGame to avoid running out of mem)
+    edCreateDefaultSaveFolder();  
 
     if (resp == 0) {
         bi_cmd_usb_wr(&registery->cur_game.rom_inf.mapper, 2);

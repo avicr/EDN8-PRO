@@ -105,6 +105,10 @@ u8 app_recentMenu() {
                 str_copy(recent->slot[selector].path, name_buff);
                 resp = edSelectGame(name_buff, 0);
                 free(MAX_PATH_SIZE);
+
+                // Create the default save folder (broken up from edSelectGame to avoid running out of mem)
+                edCreateDefaultSaveFolder();  
+
                 if (resp)return resp;
                 return edStartGame(0);
             }

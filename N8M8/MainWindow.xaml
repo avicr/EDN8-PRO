@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:N8M8"
         xmlns:Controls="clr-namespace:N8M8.Controls" x:Class="N8M8.MainWindow"
         mc:Ignorable="d"
-        Title="N8M8" Height="469" Width="806" AllowDrop="True" Drop="Window_Drop">
+        Title="N8M8" Height="469" Width="806">
     <DockPanel Unloaded="Grid_Unloaded">
         
         <Controls:EDInfo DockPanel.Dock="Bottom"/>
