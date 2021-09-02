@@ -189,6 +189,8 @@ namespace edlink_n8
 
         public event EventHandler<string> OnGameStarted;
         public event EventHandler<string> OnGameStopped;
+        public event EventHandler OnGamePaused;
+        public event EventHandler OnGameUnpaused;        
         public event EventHandler<string> OnSaveStateLoaded;
         public event EventHandler<string> OnSaveStateSaved;
         public event EventHandler<SaveStateSlotChangeEventArgs> OnSaveStateSlotChanged;  // Called when the save state folder OR bank is changed
@@ -1014,7 +1016,7 @@ namespace edlink_n8
         }
 
         private void HandleMessage(int MessageCode)
-        {            
+        {
             // Game started message
             if (MessageCode == 'G')
             {
@@ -1065,6 +1067,8 @@ namespace edlink_n8
             }
             else if (MessageCode == 'B')
             {
+                // Bank switch message
+
                 // Get the folder name
                 byte[] FileNameBytes = rxData(513);
                 string FileName = System.Text.Encoding.Default.GetString(FileNameBytes).Split('\0')[0];
@@ -1077,7 +1081,31 @@ namespace edlink_n8
                 {
                     handler(this, new SaveStateSlotChangeEventArgs { FolderName = FileName, SlotNumber = BankNumber });
                 }
-            }            
+            }
+            else if (MessageCode == 'P')
+            {
+                // In game menu was brought up (game paused)
+
+                // No arguments, just call the event
+                EventHandler handler = OnGamePaused;
+
+                if (handler != null)
+                {
+                    handler(this, null);
+                }
+            }
+            else if (MessageCode == 'U')
+            {
+                // In game menu was closed (game unpaused)
+
+                // No arguments, just call the event
+                EventHandler handler = OnGameUnpaused;
+
+                if (handler != null)
+                {
+                    handler(this, null);
+                }
+            }
         }
 
         public void EnableAsync(bool bEnable)

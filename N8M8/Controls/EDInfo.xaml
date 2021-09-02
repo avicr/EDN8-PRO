@@ -17,8 +17,8 @@
                         <ColumnDefinition Width="Auto" SharedSizeGroup="Label"/>
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
-                    <Label Grid.Column="0" Content="Loaded Game" HorizontalAlignment="Left" FontFamily="Bahnschrift" FontSize="14" Margin="10,0,0,0" IsHitTestVisible="False"/>
-                    <Label x:Name="LblGame" Grid.Column="1" Content="None" Margin="30,0,0,0" FontFamily="Bahnschrift" FontSize="14" IsHitTestVisible="False"/>
+                    <Label Grid.Column="0" Content="Loaded Game" HorizontalAlignment="Left" FontFamily="Bahnschrift" FontSize="16" Margin="10,0,0,0" IsHitTestVisible="False"/>
+                    <Label x:Name="LblGame" Grid.Column="1" Content="" Margin="30,0,0,0" FontFamily="Bahnschrift" FontSize="16" IsHitTestVisible="False"/>
                 </Grid>
                 <Grid>
                     <Grid.ColumnDefinitions>

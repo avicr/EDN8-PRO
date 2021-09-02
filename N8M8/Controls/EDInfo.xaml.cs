@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO.Compression;
+using System.Timers;
 using System.Diagnostics;
 using edlink_n8;
 using System.Windows.Controls;
@@ -11,11 +12,19 @@ using System.Windows.Shapes;
 
 namespace N8M8.Controls
 {
+	public enum eGameState
+	{
+		Stopped,
+		Started,		
+		Paused
+	}
 	/// <summary>
 	/// Interaction logic for EDInfo.xaml
 	/// </summary>
 	public partial class EDInfo : UserControl
 	{
+		protected eGameState GameState;
+		
 		public EDInfo()
 		{
 			InitializeComponent();
@@ -25,7 +34,7 @@ namespace N8M8.Controls
 		{
 			if (!DesignerProperties.GetIsInDesignMode(this))
 			{
-				SetupDelegates();
+				SetupDelegates();		
 			}
 		}
 
@@ -33,11 +42,13 @@ namespace N8M8.Controls
 		{
 			MainWindow.TheEdio.OnGameStarted += GameStarted;
 			MainWindow.TheEdio.OnGameStopped += GameStopped;
+			MainWindow.TheEdio.OnGamePaused += GamePaused;
+			MainWindow.TheEdio.OnGameUnpaused += GameUnpaused;
 			MainWindow.TheEdio.OnSaveStateLoaded += SaveStateLoaded;
 			MainWindow.TheEdio.OnSaveStateSaved += SaveStateSaved;
 			MainWindow.TheEdio.OnSaveStateSlotChanged += SaveStateSlotChanged;
 		}
-
+		
 		public void GameStarted(Object Sender, string FilePath)
 		{			
 			if (!Dispatcher.CheckAccess())
@@ -47,13 +58,17 @@ namespace N8M8.Controls
 					new Action(() => GameStarted(Sender, FilePath)));
 			}
 			else
-			{
+			{				
 				LblGame.Content = System.IO.Path.GetFileName(FilePath);
 
 				// Assume default save state folder/slot on game start
 				LblSaveFolder.Content = "DEFAULT";
 				LblSaveSlot.Content = "0";
-				//TxtLog.AppendText(("Game started: " + FilePath + "\n"));
+
+				// Disable drag and drop while a game is running
+				GameState = eGameState.Started;				
+				MainPanel.AllowDrop = false;
+				DropText.Text = "";	
 			}
 			
 		}
@@ -72,17 +87,71 @@ namespace N8M8.Controls
 				LblSaveFolder.Content = "";
 				LblSaveSlot.Content = "";
 				//TxtLog.AppendText(("Game started: " + FilePath + "\n"));
+
+				// Allow drag and drop when the game is stopped
+				GameState = eGameState.Stopped;				
+				MainPanel.AllowDrop = true;
+				DropText.Text = "Drag ROM here to deploy";				
 			}
 			Debug.WriteLine("Game Stopped: " + FilePath);
 		}
 
+		public void GamePaused(Object Sender, EventArgs E)
+		{
+			if (!Dispatcher.CheckAccess())
+			{
+				Dispatcher.BeginInvoke(
+					DispatcherPriority.Background,
+					new Action(() => GamePaused(Sender, E)));
+			}
+			else
+			{
+				MainPanel.AllowDrop = true;
+				DropText.Text = "Drag ROM here to deploy";				
+			}
+		}
+		public void GameUnpaused(Object Sender, EventArgs E)
+		{
+			if (!Dispatcher.CheckAccess())
+			{
+				Dispatcher.BeginInvoke(
+					DispatcherPriority.Background,
+					new Action(() => GameUnpaused(Sender, E)));
+			}
+			else
+			{
+				MainPanel.AllowDrop = false;
+				DropText.Text = "";
+			}
+		}
+
 		public void SaveStateLoaded(Object Sender, string FilePath)
 		{
+			if (!Dispatcher.CheckAccess())
+			{
+				Dispatcher.BeginInvoke(
+					DispatcherPriority.Background,
+					new Action(() => SaveStateLoaded(Sender, FilePath)));
+			}
+			else
+			{							
+				DropText.Text = "Save State Loaded";
+			}			
 			Debug.WriteLine("Save State Loaded: " + FilePath);
 		}
 
 		public void SaveStateSaved(Object Sender, string FilePath)
 		{
+			if (!Dispatcher.CheckAccess())
+			{
+				Dispatcher.BeginInvoke(
+					DispatcherPriority.Background,
+					new Action(() => SaveStateSaved(Sender, FilePath)));
+			}
+			else
+			{
+				DropText.Text = "Save State Saved";
+			}
 			Debug.WriteLine("Save State Saved: " + FilePath);
 		}
 
@@ -151,8 +220,6 @@ namespace N8M8.Controls
 							Entry.ExtractToFile(FilePath);
 						}
 					}
-					
-
 				}
 
 				MainWindow.LoadROM(FilePath);

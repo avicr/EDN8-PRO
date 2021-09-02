@@ -457,20 +457,9 @@ u8 edStartGame(u8 usb_mode) {
         resp = bi_cmd_fpg_init_sdc(map_path); //reconfigure fpga
         if (resp)return resp;
     }
-
-    // Really should move these M8 commands to a function instead of copying this if everywhere...
-    if (ses_cfg->m8_connected)
-    {
-        bi_cmd_usb_wr("!G", 2);
-        bi_cmd_usb_wr(registery->cur_game.path, 513);    
-    }
-    
-    // Give the USB write a little time to finish
-    //sysVsync();    
-
+            
     //mem_copy(&cfg, &ses_cfg->cfg, sizeof (MapConfig));
-    // Read anything off the usb
-    usbListener();
+    
     bi_start_app(cfg);    
     
     return 0;

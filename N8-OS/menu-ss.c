@@ -12,6 +12,7 @@ void inGameMenu() {
 
 }
 
+void InGameMenuReturn();
 
 #pragma codeseg ("BNK08")
 
@@ -220,6 +221,7 @@ void app_inGameMenu() {
     u8 ss_src;    
     u8 ss_bank_hex;    
     u8 update_info = 0;
+    u8 Done = 0;
 
     edInit(1);
     
@@ -246,22 +248,29 @@ void app_inGameMenu() {
 
     // Read anything off the USB
     usbListener();
-
+    
     //quick ss section
     if (ss_src != 0xff && ss_src == registery->options.ss_key_load) {
         ppuOFF();        
         resp = srmRestoreSS(ss_bank_hex, 0);        
         if (resp)printError(resp);
-        ss_return();
+        InGameMenuReturn();
     }
 
     if (ss_src != 0xff && ss_src == registery->options.ss_key_save) {
         ppuOFF();
         resp = srmBackupSS(ss_bank_hex, 0);
         if (resp)printError(resp);
-        ss_return();
+        InGameMenuReturn();
     }
-    
+
+    // Really should move these M8 commands to a function instead of copying this if everywhere...
+    if (ses_cfg->m8_connected)
+    {
+         // Game operation paused
+        bi_cmd_usb_wr("!P", 2);               
+    }
+
     resp = srmGetInfoSS(&inf, ss_bank_hex, 0);
     sysUpdateCustomPal();
     box.hdr = "ses_cfg->save_folder_name";
@@ -274,6 +283,7 @@ void app_inGameMenu() {
             // Really should move these M8 commands to a function instead of copying this if everywhere...
             if (ses_cfg->m8_connected)
             {                
+                // Bank select message
                 bi_cmd_usb_wr("!B", 2);
                 bi_cmd_usb_wr(ses_cfg->save_folder_name, 513);    
                 bi_cmd_usb_wr(&ses_cfg->ss_bank, 1);
@@ -308,7 +318,7 @@ void app_inGameMenu() {
         
 
         if (box.act == ACT_EXIT) {            
-            ss_return();
+            InGameMenuReturn();
         }
 
 
@@ -386,7 +396,7 @@ void app_inGameMenu() {
 
     if (box.selector == SS_SWAP_DISK) {
         REG_FDS_SWAP = 1;
-        ss_return();
+        InGameMenuReturn();
     }
 
     if (box.selector == SS_MASTER_SAVE) 
@@ -400,7 +410,7 @@ void app_inGameMenu() {
         ppuON();
         sysPalInit(2);        
         gRepaint();                
-        ss_return();
+        InGameMenuReturn();
     }
 
     if (box.selector == SS_MASTER_LOAD) 
@@ -414,7 +424,7 @@ void app_inGameMenu() {
         ppuON();
         sysPalInit(2);        
         gRepaint();             
-        ss_return();
+        InGameMenuReturn();
     }
 
     if (box.selector == SS_SAVE) {
@@ -433,13 +443,13 @@ void app_inGameMenu() {
                 printError(resp);
             }
         }
-        ss_return();
+        InGameMenuReturn();
     }
 
     if (box.selector == SS_LOAD) {
         resp = srmRestoreSS(ss_bank_hex, 0);
         if (resp)printError(resp);
-        ss_return();
+        InGameMenuReturn();
     }
 
     if (box.selector == SS_RESET) {
@@ -452,4 +462,15 @@ void app_inGameMenu() {
         bi_exit_game();
     }
 
+}
+
+void InGameMenuReturn()
+{
+    if (ses_cfg->m8_connected)
+    {
+         // Game operation unpaused
+        bi_cmd_usb_wr("!U", 2);               
+    }
+
+    ss_return();
 }

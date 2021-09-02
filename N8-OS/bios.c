@@ -722,6 +722,13 @@ void bi_start_app(MapConfig *cfg) {
     u32 addr, len;
     u8 ack;
 
+    // Really should move these M8 commands to a function instead of copying this if everywhere...
+    if (ses_cfg->m8_connected)
+    {
+        bi_cmd_usb_wr("!G", 2);
+        bi_cmd_usb_wr(registery->cur_game.path, 513);    
+    }
+
     addr = ADDR_CFG;
     len = sizeof (MapConfig);
     ack = 0xaa;
@@ -732,13 +739,7 @@ void bi_start_app(MapConfig *cfg) {
     bi_fifo_wr(&ack, 1);
     bi_fifo_wr(cfg, sizeof (MapConfig));
 
-// Really should move these M8 commands to a function instead of copying this if everywhere...
-    if (ses_cfg->m8_connected)
-    {
-        bi_cmd_usb_wr("!G", 2);
-        bi_cmd_usb_wr(registery->cur_game.path, 513);    
-    }
-    
+
     bi_reboot(STATUS_CMD_OK);
 }
 

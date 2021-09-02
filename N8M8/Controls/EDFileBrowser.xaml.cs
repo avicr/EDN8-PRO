@@ -32,7 +32,7 @@ namespace N8M8.Controls
 
 		// References to the objects in MainWindow
 		static protected Edio TheEdio;
-		static protected Usbio TheUsbio;
+		static protected Usbio TheUsbio;		
 
 		public EverdriveMate()
 		{			
