@@ -170,7 +170,7 @@ namespace N8M8.Controls
 				{
 					if (ex.Source == "7")
 					{
-						MessageBox.Show("Cannot delete non-empty directory.");
+						MessageBox.Show("Cannot delete unempty directory.");
 					}
 				}
 			}
