@@ -219,7 +219,7 @@ void app_inGameMenu() {
     u8* RootSaveFolder;
     u8 ss_src;    
     u8 ss_bank_hex;    
-    u8 update_info = 1;
+    u8 update_info = 0;
 
     edInit(1);
     
@@ -262,7 +262,7 @@ void app_inGameMenu() {
         ss_return();
     }
     
-    
+    resp = srmGetInfoSS(&inf, ss_bank_hex, 0);
     sysUpdateCustomPal();
     box.hdr = "ses_cfg->save_folder_name";
 
@@ -270,6 +270,19 @@ void app_inGameMenu() {
 
         if (update_info) {
             resp = srmGetInfoSS(&inf, ss_bank_hex, 0);
+
+            // Really should move these M8 commands to a function instead of copying this if everywhere...
+            if (ses_cfg->m8_connected)
+            {                
+                bi_cmd_usb_wr("!B", 2);
+                bi_cmd_usb_wr(ses_cfg->save_folder_name, 513);    
+                bi_cmd_usb_wr(&ses_cfg->ss_bank, 1);
+
+                // Give the everdrive time to send all that
+                sysVsync();
+                sysVsync();                
+            }
+
             update_info = 0;
         }
 
@@ -350,7 +363,7 @@ void app_inGameMenu() {
                 // Debug yo
                 // gSetXY(0, 0);
                 // gConsPrint(RootSaveFolder);
-
+                update_info = 1;
                 free(MAX_PATH_SIZE + 1);
                 gCleanScreen();                                      
             }
@@ -359,8 +372,7 @@ void app_inGameMenu() {
                 // Do the folder name input
                 gCleanScreen();
                 DoAlpha();     
-                gCleanScreen();           
-                box.hdr = "ses_cfg->save_folder_name";                
+                gCleanScreen();                           
                 update_info = 1;
             }
             else

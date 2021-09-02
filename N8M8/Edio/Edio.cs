@@ -180,11 +180,18 @@ namespace edlink_n8
         const byte CMD_RUN_APP = 0xF1;
 
         SerialPort port;
-        
+
+        public struct SaveStateSlotChangeEventArgs
+        {
+            public string FolderName { get; set; }
+            public byte SlotNumber { get; set; }
+        }
+
         public event EventHandler<string> OnGameStarted;
         public event EventHandler<string> OnGameStopped;
         public event EventHandler<string> OnSaveStateLoaded;
         public event EventHandler<string> OnSaveStateSaved;
+        public event EventHandler<SaveStateSlotChangeEventArgs> OnSaveStateSlotChanged;  // Called when the save state folder OR bank is changed
 
         public Edio()
         {
@@ -966,13 +973,14 @@ namespace edlink_n8
 
         private void DataReceivedHandler(object sender, SerialDataReceivedEventArgs e)
         {
+            EnableAsync(false);
             SerialPort sp = (SerialPort)sender;
             int Code = sp.ReadByte();
 
             // All commands start with *
             if ((char)Code != '!' || sp.BytesToRead <= 0)
             {
-                Debug.WriteLine("Bad data, expecting '*'");
+                Debug.WriteLine("Bad data, expecting '!'");
 
                 // The data stream is out of sync, read all existing data in hopes of recovering (should this be read byte by byte until * or eof??)
                 sp.ReadExisting();
@@ -981,10 +989,11 @@ namespace edlink_n8
             {
                 HandleMessage(sp.ReadByte());
             }
+            EnableAsync(true);
         }
 
         private void HandleMessage(int MessageCode)
-        {
+        {            
             // Game started message
             if (MessageCode == 'G')
             {
@@ -995,7 +1004,7 @@ namespace edlink_n8
                 if (handler != null)
                 {
                     handler(this, FileName.Trim('\0'));
-                }                
+                }
             }
             else if (MessageCode == 'S')
             {
@@ -1033,6 +1042,21 @@ namespace edlink_n8
                     handler(this, FileName.Trim('\0'));
                 }
             }
+            else if (MessageCode == 'B')
+            {
+                // Get the folder name
+                byte[] FileNameBytes = rxData(513);
+                string FileName = System.Text.Encoding.Default.GetString(FileNameBytes).Split('\0')[0];
+
+                // Read the bank number
+                byte BankNumber = rx8();
+
+                EventHandler<SaveStateSlotChangeEventArgs> handler = OnSaveStateSlotChanged;
+                if (handler != null)
+                {
+                    handler(this, new SaveStateSlotChangeEventArgs { FolderName = FileName, SlotNumber = BankNumber });
+                }
+            }            
         }
 
         public void EnableAsync(bool bEnable)

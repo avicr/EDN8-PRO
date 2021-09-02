@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
+using System.Threading;
 using System.Linq;
 using System.Text;
 using System.Windows;
@@ -21,7 +21,7 @@ namespace edlink_n8
         public Usbio(Edio edio)
         {
             this.edio = edio;
-            cmd('m');
+            Connect();
         }
 
         ~Usbio()
@@ -132,6 +132,7 @@ namespace edlink_n8
 
         public void loadOS(NesRom rom, string map_path)
         {
+            edio.EnableAsync(false);
             if (map_path == null)
             {
                 map_path = getTestMapper(255);
@@ -160,7 +161,7 @@ namespace edlink_n8
                 byte[] map = File.ReadAllBytes(map_path);
                 edio.fpgInit(map, cfg);
             }
-
+            edio.EnableAsync(true);
         }
 
         void copyFolder(string src, string dst)
@@ -299,6 +300,24 @@ namespace edlink_n8
             buff[0] = (byte)'*';
             buff[1] = (byte)cmd;
             edio.fifoWR(buff, 0, buff.Length);
+        }
+
+        public void Connect()
+        {
+            cmd('m');
+        }
+
+        public void Reboot()
+        {
+            edio.EnableAsync(false);
+            cmd(cmd_reboot);
+            edio.rx8();//exec
+
+            // Wait and reconnect
+            Thread.Sleep(500);
+            Connect();
+
+            edio.EnableAsync(true);
         }
 
         public void Disconnect()

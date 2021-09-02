@@ -45,6 +45,7 @@ namespace N8M8.Controls
 			TheEdio.OnGameStopped += GameStopped;
 			TheEdio.OnSaveStateLoaded += SaveStateLoaded;
 			TheEdio.OnSaveStateSaved += SaveStateSaved;
+			TheEdio.OnSaveStateSlotChanged += SaveStateSlotChanged;
 		}
 		public void GameStarted(Object Sender, string FilePath)
 		{
@@ -64,6 +65,11 @@ namespace N8M8.Controls
 		public void SaveStateSaved(Object Sender, string FilePath)
 		{
 			Debug.WriteLine("Save State Saved: " + FilePath);
+		}
+
+		public void SaveStateSlotChanged(Object Sender, Edio.SaveStateSlotChangeEventArgs Args)
+		{
+			Debug.WriteLine("Save State Saved: " + Args.FolderName + " " + Args.SlotNumber.ToString());
 		}
 
 		public void SetDirectoryInfo(EDFileInfo[] FileInfos)
@@ -295,7 +301,10 @@ namespace N8M8.Controls
 
 		private void UserControl_Unloaded(object sender, RoutedEventArgs e)
 		{
-			TheUsbio.Disconnect();
+			if (!DesignerProperties.GetIsInDesignMode(this))
+			{
+				TheUsbio.Disconnect();
+			}
 		}
 
 		private void UserControl_Loaded(object sender, RoutedEventArgs e)
@@ -310,11 +319,9 @@ namespace N8M8.Controls
 				}
 
 				SetupDelegates();
-
-			}
-
-			Window OwningWindow = Window.GetWindow(this);
-			OwningWindow.Closing += OnWindowClosing;
+				Window OwningWindow = Window.GetWindow(this);
+				OwningWindow.Closing += OnWindowClosing;
+			}			
 		}
 
 		void OnWindowClosing(object sender, global::System.ComponentModel.CancelEventArgs e)

@@ -6,10 +6,12 @@
         xmlns:local="clr-namespace:N8M8"
         xmlns:Controls="clr-namespace:N8M8.Controls" x:Class="N8M8.MainWindow"
         mc:Ignorable="d"
-        Title="N8M8" Height="313" Width="523">
-    <Grid Unloaded="Grid_Unloaded">
+        Title="N8M8" Height="469" Width="806" AllowDrop="True" Drop="Window_Drop">
+    <DockPanel Unloaded="Grid_Unloaded">
+        
+        <Controls:EDInfo DockPanel.Dock="Bottom"/>
+        <Controls:EverdriveMate x:Name="FileBrowser" DockPanel.Dock="Bottom"/>
+        
 
-        <Controls:EverdriveMate x:Name="FileBrowser" HorizontalAlignment="Left" Margin="7,5,0,0" VerticalAlignment="Top" Height="237" Width="330"/>
-
-    </Grid>
+    </DockPanel>
 </Window>

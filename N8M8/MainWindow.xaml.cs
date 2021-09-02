@@ -3,7 +3,7 @@ using System.Windows;
 using System.ComponentModel;
 using System.Windows.Input;
 using edlink_n8;
-using N8M8.Controls;
+using System.Threading;
 
 namespace N8M8
 {
@@ -42,6 +42,48 @@ namespace N8M8
 		private void Grid_Unloaded(object sender, RoutedEventArgs e)
 		{
 
+		}
+
+		private void BtnReboot_Click(object sender, RoutedEventArgs e)
+		{
+			TheUsbio.Reboot();			
+		}
+
+		private void Window_Drop(object sender, DragEventArgs e)
+		{
+			// If this is a file drop
+			if (e.Data.GetDataPresent(DataFormats.FileDrop))
+			{
+				// Grab the first string
+				string FilePath = ((string[])e.Data.GetData(DataFormats.FileDrop))[0];
+				LoadROM(FilePath);
+			}
+		}
+
+		void LoadROM(string RomPath)
+		{			
+			Console.WriteLine("ROM loading...");
+
+			NesRom Rom = new NesRom(RomPath);
+			Rom.print();
+
+			if (Rom.Type == NesRom.ROM_TYPE_OS)
+			{
+				TheUsbio.loadOS(Rom, null);
+			}
+			else
+			{
+				TheUsbio.loadGame(Rom, null);				
+				TheEdio.Reinit();
+			}
+
+			Console.WriteLine();
+
+			TheEdio.EnableAsync(false);
+			TheEdio.getConfig().print();
+			Thread.Sleep(1000);
+			TheUsbio.Connect();
+			TheEdio.EnableAsync(true);
 		}
 	}
 }
